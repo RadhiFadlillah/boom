@@ -1,9 +1,9 @@
 # Boom
 
-Boom is a simple static blog generator for creating a simple blog. "Boom" apparently means "tree" in Dutch language, so I thought it's a good name because :
+Boom is a simple static site generator for creating a simple site. "Boom" apparently means "tree" in Dutch language, so I thought it's a good name because :
 
 - It's easy to say;
-- It's suitable for the app purpose since the content of blog will be structured like a tree inside directories.
+- It's suitable for the app purpose since the content of site will be structured like a tree inside directories.
 
 ## Features
 

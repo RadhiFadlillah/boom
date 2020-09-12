@@ -1,0 +1,6 @@
+# Exclude config file
+.vscode/
+
+# Exclude development file
+boom
+dev-site/
