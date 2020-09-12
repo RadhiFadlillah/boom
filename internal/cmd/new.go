@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	fp "path/filepath"
 	"strings"
@@ -47,7 +49,7 @@ func newHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Get sites metadata from user
+	// Ask metadata from user
 	scanner := bufio.NewScanner(os.Stdin)
 	if title == "" {
 		cBold.Print("Website title : ")
@@ -66,40 +68,35 @@ func newHandler(cmd *cobra.Command, args []string) {
 		owner = strings.TrimSpace(scanner.Text())
 	}
 
-	// Create directories
-	os.MkdirAll(fp.Join(rootDir, "themes"), os.ModePerm)
-	os.MkdirAll(fp.Join(rootDir, "content"), os.ModePerm)
-
-	// Write first page
-	prefixErrIndex := "Failed to create index page:"
-
-	indexPath := fp.Join(rootDir, "content", "_index.md")
-	indexFile, err := os.Create(indexPath)
-	panicError(err, prefixErrIndex)
-	defer indexFile.Close()
-
-	_, err = indexFile.WriteString("Hello World")
-	panicError(err, prefixErrIndex)
-
-	err = indexFile.Sync()
-	panicError(err, prefixErrIndex)
-
-	// Write metadata
-	prefixErrMeta := "Failed to create metadata:"
-
-	metaPath := fp.Join(rootDir, "content", "_meta.toml")
-	metaFile, err := os.Create(metaPath)
-	panicError(err, prefixErrMeta)
-	defer metaFile.Close()
-
+	// Generate metadata
 	currentTime := time.Now()
-	err = toml.NewEncoder(metaFile).Encode(model.Metadata{
+	bt, err := toml.Marshal(model.Metadata{
 		Title:      title,
 		Author:     owner,
 		CreateTime: currentTime,
 		UpdateTime: currentTime,
 		Pagination: 10})
-	panicError(err, prefixErrMeta)
+	panicError(err, "Failed to create metadata:")
+
+	// Create directories
+	os.MkdirAll(fp.Join(rootDir, "themes"), os.ModePerm)
+	os.MkdirAll(fp.Join(rootDir, "content"), os.ModePerm)
+
+	// Write index page
+	indexBuffer := bytes.NewBuffer(nil)
+	indexBuffer.WriteString("+++\n")
+	indexBuffer.Write(bt)
+	indexBuffer.WriteString("+++\n\n")
+	indexBuffer.WriteString("Welcome to your site")
+
+	prefixErrIndex := "Failed to create index page:"
+	indexPath := fp.Join(rootDir, "content", "_index.md")
+	indexFile, err := os.Create(indexPath)
+	panicError(err, prefixErrIndex)
+	defer indexFile.Close()
+
+	_, err = io.Copy(indexFile, indexBuffer)
+	panicError(err, prefixErrIndex)
 
 	// Finish
 	fmt.Print("Your new site is created in ")
