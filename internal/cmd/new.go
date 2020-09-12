@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/go-boom/boom/internal/model"
-	"github.com/gookit/color"
 	"github.com/pelletier/go-toml"
 	"github.com/spf13/cobra"
 )
@@ -22,6 +21,8 @@ func newCmd() *cobra.Command {
 		Run:   newHandler,
 	}
 
+	cmd.Flags().StringP("title", "t", "", "title of the website")
+	cmd.Flags().StringP("owner", "o", "", "owner of the website")
 	cmd.Flags().BoolP("force", "f", false, "force init inside non-empty directory")
 	cmd.AddCommand()
 	return cmd
@@ -30,67 +31,65 @@ func newCmd() *cobra.Command {
 func newHandler(cmd *cobra.Command, args []string) {
 	// Read arguments
 	rootDir := args[0]
+	title, _ := cmd.Flags().GetString("title")
+	owner, _ := cmd.Flags().GetString("owner")
 	isForced, _ := cmd.Flags().GetBool("force")
+
+	title = strings.TrimSpace(title)
+	owner = strings.TrimSpace(owner)
 
 	// Make sure target directory exists
 	os.MkdirAll(rootDir, os.ModePerm)
 
 	// Make sure target dir is empty
 	if !dirEmpty(rootDir) && !isForced {
-		color.Error.Printf("Directory %s already exists and not empty\n", rootDir)
+		cError.Printf("Directory %s already exists and not empty\n", rootDir)
 		return
 	}
 
 	// Get sites metadata from user
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("Please input data for new website")
-	fmt.Println()
-
-	color.Bold.Print("Website title : ")
-	scanner.Scan()
-	title := strings.TrimSpace(scanner.Text())
-
 	if title == "" {
-		color.Error.Println("Website title must not empty")
-		return
+		cBold.Print("Website title : ")
+		scanner.Scan()
+		title = strings.TrimSpace(scanner.Text())
+
+		if title == "" {
+			cError.Println("Website title must not empty")
+			return
+		}
 	}
 
-	color.Bold.Print("Website owner : ")
-	scanner.Scan()
-	owner := strings.TrimSpace(scanner.Text())
+	if owner == "" {
+		cBold.Print("Website owner : ")
+		scanner.Scan()
+		owner = strings.TrimSpace(scanner.Text())
+	}
 
 	// Create directories
 	os.MkdirAll(fp.Join(rootDir, "theme"), os.ModePerm)
 	os.MkdirAll(fp.Join(rootDir, "content"), os.ModePerm)
 
 	// Write first page
+	prefixErrIndex := "Failed to create index page:"
+
 	indexPath := fp.Join(rootDir, "content", "_index.md")
 	indexFile, err := os.Create(indexPath)
-	if err != nil {
-		color.Error.Println("Failed to create index page:", err)
-		return
-	}
+	panicError(err, prefixErrIndex)
 	defer indexFile.Close()
 
 	_, err = indexFile.WriteString("Hello World")
-	if err != nil {
-		color.Error.Println("Failed to write index page:", err)
-		return
-	}
+	panicError(err, prefixErrIndex)
 
 	err = indexFile.Sync()
-	if err != nil {
-		color.Error.Println("Failed to write index page:", err)
-		return
-	}
+	panicError(err, prefixErrIndex)
 
 	// Write metadata
+	prefixErrMeta := "Failed to create metadata:"
+
 	metaPath := fp.Join(rootDir, "content", "_meta.toml")
 	metaFile, err := os.Create(metaPath)
-	if err != nil {
-		color.Error.Println("Failed to create metadata file:", err)
-		return
-	}
+	panicError(err, prefixErrMeta)
 	defer metaFile.Close()
 
 	currentTime := time.Now()
@@ -100,13 +99,9 @@ func newHandler(cmd *cobra.Command, args []string) {
 		CreateTime: currentTime,
 		UpdateTime: currentTime,
 		Pagination: 10})
-	if err != nil {
-		color.Error.Println("Failed to write metadata:", err)
-		return
-	}
+	panicError(err, prefixErrMeta)
 
 	// Finish
-	fmt.Println()
-	fmt.Print("Congratulations! Your new site is created in ")
-	color.Bold.Println(rootDir)
+	fmt.Print("Your new site is created in ")
+	cBold.Println(rootDir)
 }
