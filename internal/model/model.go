@@ -11,6 +11,7 @@ type Metadata struct {
 	CreateTime  time.Time `toml:",omitempty"`
 	UpdateTime  time.Time `toml:",omitempty"`
 	Tags        []string  `toml:",omitempty"`
+	Draft       bool      `toml:",omitempty"`
 
 	// Theme related metadatas
 	Theme      string `toml:",omitempty"`
