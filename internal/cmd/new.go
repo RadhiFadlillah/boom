@@ -80,6 +80,7 @@ func newHandler(cmd *cobra.Command, args []string) {
 
 	// Create directories
 	os.MkdirAll(fp.Join(rootDir, "themes"), os.ModePerm)
+	os.MkdirAll(fp.Join(rootDir, "assets"), os.ModePerm)
 	os.MkdirAll(fp.Join(rootDir, "content"), os.ModePerm)
 
 	// Write index page
