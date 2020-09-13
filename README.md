@@ -40,9 +40,9 @@ Running `boom new .` from the command line will create a directory with the foll
 ```
 .
 ├── themes/
+├── assets/
 └── content/
-    ├── _index.md
-    └── _meta.toml
+    └── _index.toml
 ```
 
 ### "themes" directory
@@ -57,6 +57,21 @@ This directory is used to store themes that used in the generated site. You can 
     └── theme-N
 ```
 
+### "assets" directory
+
+This directory is used to store assets that used in the generated site. You can structure your assets freely depending on your requirements. For example :
+
+```
+.
+└── assets/
+    ├── image-1.jpg
+    ├── image-2.png
+    └── portofolio/
+        └── app-1/
+            ├── screenshot-1.png
+            └── screenshot-2.png
+```
+
 ### "content" directory
 
 This directory is used to store all content of the site. In the most basic blog, it will looks like this :
@@ -64,46 +79,33 @@ This directory is used to store all content of the site. In the most basic blog,
 ```
 .
 └── content/
-    ├── post-1/
-    ├── post-2/
-    └── post-N/
+    ├── _index.md
+    ├── post-1.md
+    ├── post-2.md
+    ├── post-3.md
+    └── post-4.md
 ```
 
 In `boom`, a file or directory is considered as a page (and will be rendered) if it fulfills at least one of these criterias :
 
+- It's a directory which contains `_index.md` file;
 - It's a markdown file with [valid metadata](#metadata), the simplest format and might be the one that you will use the most;
-- It's a directory which contains `_index.md` with [valid metadata](#metadata), useful if you have several additional resources (images maybe) for the page;
-- It's a directory which contains `index.html` file, useful if you want to manually serve a HTML page;
-- It contains sub directories which fulfill one of three criterias above.
+- It's `index.html` file, useful if you want to manually serve a HTML page.
 
-So, if we expand the tree from previous content structure, it might looks like this :
+As long as you follow rules above, you can customize your content structure to follow your requirements. The structure will later be used for page URL. For example, here is structure for website with several categories :
 
 ```
 .
 └── content/
-    ├── _index.md
-    ├── post-1/
-    │   ├── _index.md
-    │   └── resource-01.jpg
-    ├── post-2.md
-    └── post-3/
-        └── index.html
-```
-
-As long as you follow four rules above, you can customize your content structure to follow your requirements. For example, here is structure for website with several categories :
-
-```
-.
-└── content/
-    ├── _index.md
+    ├── _index.md         // https://example.com
     ├── category-1/
-    │   ├── post-1/
-    │   │   ├── _index.md
-    │   │   └── resource-01.jpg
-    │   └── post-2.md
+    │   ├── _index.md     // https://example.com/category-1
+    │   ├── post-1.md     // https://example.com/category-1/post-1
+    │   └── post-2.md     // https://example.com/category-1/post-2
     └── category-2/
-        └── post-3/
-            └── _index.html
+        ├── _index.md     // https://example.com/category-2
+        ├── post-3.md     // https://example.com/category-2/post-3
+        └── post-4.html   // https://example.com/category-2/post-4
 ```
 
 ## Metadata
@@ -122,9 +124,10 @@ type Metadata struct {
 	Draft       bool
 
 	// Theme related metadatas
-	Theme      string
-	Template   string
-	Pagination int
+	Theme         string
+	Template      string
+	ChildTemplate string
+	Pagination    int
 }
 ```
 
@@ -152,6 +155,7 @@ Here are the explanation for each field :
 - `draft` specifies whether the page is ready to publish or not. If set to `true`, this page will not be build.
 - `theme` is the name of theme that will be used for the page.
 - `template` is the name of template that will be used for the page.
+- `childTemplate` is the name of template that will be used for the children page of current directory. Only used in `_index.md` file.
 - `pagination` is the count of items for each pagination. By default it will be 10. If it sets to negative there will be no pagination.
 
 If part of metadata is omitted, `boom` will use metadata from the page's parent directory. With that said, you should at least create `_index.md` with valid metadata in root `content` directory, as the fallback for pages with incomplete metadata.

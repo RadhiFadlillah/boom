@@ -14,7 +14,8 @@ type Metadata struct {
 	Draft       bool      `toml:",omitempty"`
 
 	// Theme related metadatas
-	Theme      string `toml:",omitempty"`
-	Template   string `toml:",omitempty"`
-	Pagination int    `toml:",omitempty"`
+	Theme         string `toml:",omitempty"`
+	Template      string `toml:",omitempty"`
+	ChildTemplate string `toml:",omitempty"`
+	Pagination    int    `toml:",omitempty"`
 }
