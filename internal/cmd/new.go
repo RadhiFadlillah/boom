@@ -69,12 +69,10 @@ func newHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Generate metadata
-	currentTime := time.Now()
 	bt, err := toml.Marshal(model.Metadata{
 		Title:      title,
 		Author:     owner,
-		CreateTime: currentTime,
-		UpdateTime: currentTime,
+		CreateTime: time.Now(),
 		Pagination: 10})
 	panicError(err, "Failed to create metadata:")
 
