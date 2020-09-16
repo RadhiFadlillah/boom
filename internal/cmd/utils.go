@@ -23,7 +23,10 @@ func dirEmpty(dirPath string) bool {
 
 func panicError(err error, prefixes ...string) {
 	if err != nil {
-		cError.Print(prefixes)
+		for _, prefix := range prefixes {
+			cError.Print(prefix + " ")
+		}
+
 		cError.Println(err)
 		os.Exit(1)
 	}

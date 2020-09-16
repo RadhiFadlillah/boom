@@ -19,7 +19,7 @@ func newCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "new [path]",
 		Short: "Create a new site at specified path",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		Run:   newHandler,
 	}
 
@@ -32,7 +32,11 @@ func newCmd() *cobra.Command {
 
 func newHandler(cmd *cobra.Command, args []string) {
 	// Read arguments
-	rootDir := args[0]
+	rootDir := "."
+	if len(args) > 0 {
+		rootDir = args[0]
+	}
+
 	title, _ := cmd.Flags().GetString("title")
 	owner, _ := cmd.Flags().GetString("owner")
 	isForced, _ := cmd.Flags().GetBool("force")
