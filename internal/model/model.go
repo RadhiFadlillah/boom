@@ -25,26 +25,42 @@ type Metadata struct {
 
 // PageTemplate is template model for rendering a page.
 type PageTemplate struct {
-	IsDir      bool
 	URLPath    string
-	ActiveTag  string
-	PathTrails []PagePath
+	PathTrails []ContentPath
 
+	// Dir data
+	DirTitle    string
+	DirItems    []ContentPath
+	DirTags     []TagPath
+	PageSize    int
+	CurrentPage int
+	MaxPage     int
+
+	// File data
 	Title       string
 	Description string
 	Author      string
 	CreateTime  time.Time
 	UpdateTime  time.Time
-	Tags        []PagePath
 	Content     template.HTML
-	Pagination  int
 
-	theme    string
-	template string
+	// Special for non _index.md file
+	Tags     []TagPath
+	PrevFile ContentPath
+	NextFile ContentPath
 }
 
-// PagePath is path to the page and title of each directory.
-type PagePath struct {
-	Path  string
-	Title string
+// ContentPath is path to a content.
+type ContentPath struct {
+	URLPath    string
+	Title      string
+	UpdateTime time.Time
+	IsDir      bool
+}
+
+// TagPath is path to a content.
+type TagPath struct {
+	URLPath string
+	Name    string
+	Count   int
 }
