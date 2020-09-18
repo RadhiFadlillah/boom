@@ -90,18 +90,31 @@ func (wk *Worker) Build(urlPath string, w io.Writer) error {
 
 // createTemplate creates HTML template from specified theme and template name.
 func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, templateName string) error {
-	// Get all HTML files in theme dir
+	// Find theme dir
 	themeDir := fp.Join(wk.rootDir, "themes", themeName)
+
+	// If theme name not specified, use the first dir found
+	if themeName == "" && isDir(themeDir) {
+		dirItems, err := ioutil.ReadDir(themeDir)
+		if err != nil {
+			return err
+		}
+
+		for _, item := range dirItems {
+			if item.IsDir() {
+				themeDir = fp.Join(themeDir, item.Name())
+				break
+			}
+		}
+	}
+
+	// Get all HTML files in theme dir
 	dirItems, err := ioutil.ReadDir(themeDir)
 	if err != nil {
 		return err
 	}
 
 	// Separate base template and the others
-	if templateName == "" {
-		templateName = "default"
-	}
-
 	baseTemplate := fp.Join(themeDir, templateName) + ".html"
 	templateFiles := []string{baseTemplate}
 
