@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"github.com/go-boom/boom/internal/webserver"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -9,7 +11,7 @@ func serveCmd() *cobra.Command {
 		Use:     "server",
 		Short:   "Run webserver for the site",
 		Aliases: []string{"serve"},
-		Args:    cobra.NoArgs,
+		Args:    cobra.MaximumNArgs(1),
 		Run:     serveHandler,
 	}
 
@@ -18,4 +20,17 @@ func serveCmd() *cobra.Command {
 }
 
 func serveHandler(cmd *cobra.Command, args []string) {
+	// Parse flags
+	port, _ := cmd.Flags().GetInt("port")
+
+	// Parse args
+	rootDir := "."
+	if len(args) > 0 {
+		rootDir = args[0]
+	}
+
+	// Start server
+	logrus.Printf("Serve boom in :%d\n", port)
+	err := webserver.Start(rootDir, port)
+	panicError(err)
 }

@@ -29,7 +29,7 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 	// Now since the URL path clean from page number, we can generate
 	// file path to process.
 	cleanURLPath := path.Join(urlPathSegments...)
-	mdFilePath := fp.Join(wk.contentDir, cleanURLPath)
+	mdFilePath := fp.Join(wk.ContentDir, cleanURLPath)
 	dirIndexMdPath := ""
 
 	switch {
@@ -79,7 +79,7 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 	}}
 
 	for parentPath := path.Dir(urlPath); parentPath != "."; parentPath = path.Dir(parentPath) {
-		parentFilePath := fp.Join(wk.contentDir, parentPath)
+		parentFilePath := fp.Join(wk.ContentDir, parentPath)
 		parentMeta, _, err := wk.parsePath(parentFilePath)
 		if err != nil {
 			return err
@@ -126,7 +126,7 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 			continue
 		}
 
-		if !item.IsDir() && itemExt == ".md" {
+		if !item.IsDir() && itemExt == ".md" && itemName != "_index.md" {
 			itemTime := itemMeta.UpdateTime
 			if itemTime.IsZero() {
 				itemTime = itemMeta.CreateTime

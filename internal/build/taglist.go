@@ -35,7 +35,7 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 	// Now since the URL path clean from tag name and page number,
 	// we can generate path to _index.md file from it
 	cleanURLPath := path.Join(urlPathSegments...)
-	dirPath := fp.Join(wk.contentDir, cleanURLPath)
+	dirPath := fp.Join(wk.ContentDir, cleanURLPath)
 	dirIndexMdPath := fp.Join(dirPath, "_index.md")
 	if !isDir(dirPath) {
 		return fmt.Errorf("%s is not part of site content", urlPath)
@@ -63,7 +63,7 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 	}}
 
 	for parentPath := cleanURLPath; parentPath != "."; parentPath = path.Dir(parentPath) {
-		parentFilePath := fp.Join(wk.contentDir, parentPath)
+		parentFilePath := fp.Join(wk.ContentDir, parentPath)
 		parentMeta, _, err := wk.parsePath(parentFilePath)
 		if err != nil {
 			return err
@@ -105,7 +105,7 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 
 		// Generate URL path
 		path = strings.TrimSuffix(path, ".md")
-		fileURLPath, err := fp.Rel(wk.contentDir, path)
+		fileURLPath, err := fp.Rel(wk.ContentDir, path)
 		if err != nil {
 			return err
 		}

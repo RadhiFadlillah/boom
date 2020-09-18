@@ -43,7 +43,7 @@ type PageTemplate struct {
 	Author      string
 	CreateTime  time.Time
 	UpdateTime  time.Time
-	Content     template.HTML
+	Content     template.HTML `json:"-"`
 
 	// Special for non _index.md file
 	Tags     []TagPath
@@ -67,10 +67,10 @@ type TagListTemplate struct {
 
 // ContentPath is path to a content.
 type ContentPath struct {
+	IsDir      bool
 	URLPath    string
 	Title      string
 	UpdateTime time.Time
-	IsDir      bool
 }
 
 // TagPath is path to a content.

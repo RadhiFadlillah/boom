@@ -24,8 +24,8 @@ var (
 
 // Worker is the one that build markdown into HTML file.
 type Worker struct {
-	rootDir      string
-	contentDir   string
+	RootDir      string
+	ContentDir   string
 	cacheEnabled bool
 
 	metaCache map[string]model.Metadata
@@ -55,8 +55,8 @@ func NewWorker(rootDir string, enableCache bool) (wk Worker, err error) {
 
 	// Create a new worker
 	wk = Worker{
-		rootDir:      rootDir,
-		contentDir:   contentDir,
+		RootDir:      rootDir,
+		ContentDir:   contentDir,
 		cacheEnabled: enableCache,
 		metaCache:    make(map[string]model.Metadata),
 		htmlCache:    make(map[string]template.HTML),
@@ -91,7 +91,7 @@ func (wk *Worker) Build(urlPath string, w io.Writer) error {
 // createTemplate creates HTML template from specified theme and template name.
 func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, templateName string) error {
 	// Find theme dir
-	themeDir := fp.Join(wk.rootDir, "themes", themeName)
+	themeDir := fp.Join(wk.RootDir, "themes", themeName)
 
 	// If theme name not specified, use the first dir found
 	if themeName == "" && isDir(themeDir) {
@@ -163,22 +163,28 @@ func (wk *Worker) parsePath(path string) (meta model.Metadata, htmlContent templ
 	indexMd := fp.Join(path, "_index.md")
 	switch {
 	case isFile(path) && fp.Ext(path) == ".md":
-		meta, htmlContent, err = wk.parseMarkdown(path)
+		meta, htmlContent, _ = wk.parseMarkdown(path)
 	case isDir(path) && isFile(indexMd):
-		meta, htmlContent, err = wk.parseMarkdown(indexMd)
+		meta, htmlContent, _ = wk.parseMarkdown(indexMd)
+	}
+
+	// If title is empty, use fallback title
+	if meta.Title == "" {
+		fallbackTitle := fp.Base(path)
+		fallbackTitle = strings.TrimSuffix(fallbackTitle, ".md")
+		meta.Title = fallbackTitle
 	}
 
 	// Sometimes user might not fill nor create the metadata.
 	// In this case, looks for parent's metadata.
 	metaIsReady := func() bool {
-		return meta.Title != "" &&
-			meta.Theme != "" &&
+		return meta.Theme != "" &&
 			meta.Template != "" &&
 			meta.TagListTemplate != "" &&
 			meta.Pagination != 0
 	}
 
-	for parent := fp.Dir(path); parent != wk.rootDir; parent = fp.Dir(parent) {
+	for parent := fp.Dir(path); parent != wk.RootDir; parent = fp.Dir(parent) {
 		// If all important meta is ready, stop
 		if metaIsReady() {
 			break
@@ -197,10 +203,6 @@ func (wk *Worker) parsePath(path string) (meta model.Metadata, htmlContent templ
 		}
 
 		// Fill metadata
-		if meta.Title == "" {
-			meta.Title = parentMeta.Title
-		}
-
 		if meta.Theme == "" {
 			meta.Theme = parentMeta.Theme
 		}
