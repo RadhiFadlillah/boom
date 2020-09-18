@@ -136,10 +136,6 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 		return timeA.After(timeB)
 	})
 
-	for _, f := range files {
-		fmt.Println(f)
-	}
-
 	// Calculate pagination stuffs, return early whenever possible
 	theme := dirMeta.Theme
 	templateName := dirMeta.TagListTemplate
