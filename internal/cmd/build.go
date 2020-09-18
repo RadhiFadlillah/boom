@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/go-boom/boom/internal/builder"
+	"github.com/go-boom/boom/internal/build"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +22,7 @@ func buildCmd() *cobra.Command {
 func buildHandler(cmd *cobra.Command, args []string) {
 	rootDir := "/home/radhi/Public/new-blog"
 	mdPath := "blog/#golang"
-	worker, err := builder.NewWorker(rootDir, true)
+	worker, err := build.NewWorker(rootDir, true)
 	panicError(err)
 
 	dst, _ := os.Create("Result.html")
