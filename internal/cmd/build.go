@@ -21,13 +21,13 @@ func buildCmd() *cobra.Command {
 
 func buildHandler(cmd *cobra.Command, args []string) {
 	rootDir := "/home/radhi/Public/new-blog"
-	mdPath := "/home/radhi/Public/new-blog/content/blog/2019-03-28-readability-for-go.md"
+	mdPath := "blog/#golang"
 	worker, err := builder.NewWorker(rootDir, true)
 	panicError(err)
 
 	dst, _ := os.Create("Result.html")
 	defer dst.Close()
 
-	err = worker.BuildPage(mdPath, dst)
+	err = worker.Build(mdPath, dst)
 	panicError(err)
 }

@@ -17,10 +17,11 @@ type Metadata struct {
 	Draft       bool      `toml:",omitempty"`
 
 	// Theme's metadatas
-	Theme         string `toml:",omitempty"`
-	Template      string `toml:",omitempty"`
-	ChildTemplate string `toml:",omitempty"`
-	Pagination    int    `toml:",omitempty"`
+	Theme           string `toml:",omitempty"`
+	Template        string `toml:",omitempty"`
+	ChildTemplate   string `toml:",omitempty"`
+	TagListTemplate string `toml:",omitempty"`
+	Pagination      int    `toml:",omitempty"`
 }
 
 // PageTemplate is template model for rendering a page.
@@ -48,6 +49,20 @@ type PageTemplate struct {
 	Tags     []TagPath
 	PrevFile ContentPath
 	NextFile ContentPath
+}
+
+// TagListTemplate is template model for rendering a tag list.
+type TagListTemplate struct {
+	URLPath    string
+	PathTrails []ContentPath
+	ActiveTag  string
+
+	// Dir data
+	DirTitle    string
+	Files       []ContentPath
+	PageSize    int
+	CurrentPage int
+	MaxPage     int
 }
 
 // ContentPath is path to a content.
