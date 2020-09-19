@@ -3,9 +3,7 @@ package build
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -136,8 +134,8 @@ func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, te
 		return err
 	}
 
-	bt, _ := json.MarshalIndent(data, "", "  ")
-	fmt.Println(string(bt))
+	// bt, _ := json.MarshalIndent(data, "", "  ")
+	// fmt.Println(string(bt))
 
 	return tpl.Execute(w, data)
 }
@@ -158,21 +156,15 @@ func (wk *Worker) parsePath(path string) (meta model.Metadata, htmlContent templ
 	}
 
 	// Capture metadata from markdown file.
-	// If this path points to markdown file, just process it.
-	// If this path points to directory, look for _index.md file.
-	indexMd := fp.Join(path, "_index.md")
-	switch {
-	case isFile(path) && fp.Ext(path) == ".md":
-		meta, htmlContent, _ = wk.parseMarkdown(path)
-	case isDir(path) && isFile(indexMd):
-		meta, htmlContent, _ = wk.parseMarkdown(indexMd)
-	}
+	meta, htmlContent, _ = wk.parseMarkdown(path)
 
 	// If title is empty, use fallback title
 	if meta.Title == "" {
-		fallbackTitle := fp.Base(path)
-		fallbackTitle = strings.TrimSuffix(fallbackTitle, ".md")
-		meta.Title = fallbackTitle
+		if base := fp.Base(path); base == "_index.md" {
+			meta.Title = fp.Base(fp.Dir(path))
+		} else {
+			meta.Title = strings.TrimSuffix(base, ".md")
+		}
 	}
 
 	// Sometimes user might not fill nor create the metadata.

@@ -67,10 +67,16 @@ type TagListTemplate struct {
 
 // ContentPath is path to a content.
 type ContentPath struct {
-	IsDir      bool
-	URLPath    string
-	Title      string
+	// Common
+	IsDir   bool
+	URLPath string
+	Title   string
+
+	// File only
 	UpdateTime time.Time
+
+	// Dir only
+	NChild int
 }
 
 // TagPath is path to a content.

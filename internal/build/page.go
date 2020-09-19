@@ -72,24 +72,35 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 	}
 
 	// Create path trails
-	tplData.PathTrails = []model.ContentPath{{
-		URLPath: urlPath,
-		Title:   tplData.Title,
-		IsDir:   dirIndexMdPath == mdFilePath,
-	}}
+	finalTrail := cleanURLPath
+	if dirIndexMdPath != mdFilePath {
+		finalTrail = path.Dir(urlPath)
+		if finalTrail == "." {
+			finalTrail = ""
+		}
+	}
 
-	for parentPath := path.Dir(urlPath); parentPath != "."; parentPath = path.Dir(parentPath) {
-		parentFilePath := fp.Join(wk.ContentDir, parentPath)
+	trailSegments := append([]string{"."}, strings.Split(finalTrail, "/")...)
+	for i := 1; i < len(trailSegments); i++ {
+		parentPath := strings.Join(trailSegments[:i], "/")
+		parentFilePath := fp.Join(wk.ContentDir, parentPath, "_index.md")
 		parentMeta, _, err := wk.parsePath(parentFilePath)
 		if err != nil {
 			return err
 		}
 
-		tplData.PathTrails = append([]model.ContentPath{{
-			URLPath: parentPath,
+		tplData.PathTrails = append(tplData.PathTrails, model.ContentPath{
+			URLPath: path.Join("/", parentPath),
 			Title:   parentMeta.Title,
 			IsDir:   true,
-		}}, tplData.PathTrails...)
+		})
+	}
+
+	if finalTrail != "" {
+		tplData.PathTrails = append(tplData.PathTrails, model.ContentPath{
+			Title: tplData.DirTitle,
+			IsDir: true,
+		})
 	}
 
 	// Fetch dir items
@@ -117,23 +128,52 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 			return err
 		}
 
-		if item.IsDir() && !dirIsEmpty(itemPath) {
+		if item.IsDir() {
+			subDirItems, err := ioutil.ReadDir(itemPath)
+			if err != nil {
+				return err
+			}
+
+			nChild := 0
+			for _, subItem := range subDirItems {
+				subItemName := subItem.Name()
+				if subItem.IsDir() {
+					nChild++
+					continue
+				}
+
+				if fp.Ext(subItemName) != ".md" || subItemName == "_index.md" {
+					continue
+				}
+
+				subItemPath := fp.Join(itemPath, subItemName)
+				subItemMeta, _, _ := wk.parsePath(subItemPath)
+				if !subItemMeta.Draft {
+					nChild++
+				}
+			}
+
 			subDirs = append(subDirs, model.ContentPath{
-				URLPath: itemURLPath,
-				Title:   itemMeta.Title,
 				IsDir:   true,
+				URLPath: path.Join("/", itemURLPath),
+				Title:   itemMeta.Title,
+				NChild:  nChild,
 			})
 			continue
 		}
 
 		if !item.IsDir() && itemExt == ".md" && itemName != "_index.md" {
+			if itemMeta.Draft {
+				continue
+			}
+
 			itemTime := itemMeta.UpdateTime
 			if itemTime.IsZero() {
 				itemTime = itemMeta.CreateTime
 			}
 
 			subFiles = append(subFiles, model.ContentPath{
-				URLPath:    itemURLPath,
+				URLPath:    path.Join("/", itemURLPath),
 				Title:      itemMeta.Title,
 				UpdateTime: itemTime,
 			})
