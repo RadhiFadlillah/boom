@@ -130,7 +130,7 @@ func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, te
 	}
 
 	// Create template
-	tpl, err := template.New(templateName).Funcs(funcMap).ParseFiles(templateFiles...)
+	tpl, err := template.New(templateName).Funcs(wk.funcMap()).ParseFiles(templateFiles...)
 	if err != nil {
 		return err
 	}

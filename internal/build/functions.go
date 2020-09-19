@@ -3,13 +3,16 @@ package build
 import (
 	"html/template"
 	"path"
+	fp "path/filepath"
 	"strconv"
 )
 
-var funcMap = template.FuncMap{
-	"add":            mathAdd,
-	"sub":            mathSub,
-	"paginationLink": paginationLink,
+func (wk Worker) funcMap() template.FuncMap {
+	return template.FuncMap{
+		"add":            mathAdd,
+		"sub":            mathSub,
+		"paginationLink": wk.paginationLink,
+	}
 }
 
 func mathAdd(a, b int) int {
@@ -20,12 +23,17 @@ func mathSub(a, b int) int {
 	return a - b
 }
 
-func paginationLink(currentPath string, pageNumber int) string {
-	strNumber := strconv.Itoa(pageNumber)
-	currentDir := currentPath
-	if isNum, _ := isNumber(path.Base(currentPath)); isNum {
-		currentDir = path.Dir(currentPath)
+func (wk Worker) paginationLink(currentPath string, pageNumber int) string {
+	for {
+		isNum, _ := isNumber(path.Base(currentPath))
+		fPath := fp.Join(wk.ContentDir, currentPath+".md")
+		if !isNum && !isFile(fPath) {
+			break
+		}
+
+		currentPath = path.Dir(currentPath)
 	}
 
-	return path.Join(currentDir, strNumber)
+	strNumber := strconv.Itoa(pageNumber)
+	return path.Join(currentPath, strNumber)
 }
