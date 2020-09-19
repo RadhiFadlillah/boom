@@ -58,7 +58,7 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 
 	// Create template data
 	tplData := model.PageTemplate{
-		URLPath: urlPath,
+		URLPath: path.Join("/", urlPath),
 
 		DirTitle: dirMeta.Title,
 		PageSize: dirMeta.Pagination,
@@ -288,9 +288,8 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 
 	// At this point, we are building plain markdown page
 	mdFileIdx := 0
-	urlPath = path.Join("/", urlPath)
 	for i, item := range dirItems {
-		if !item.IsDir && item.URLPath == urlPath {
+		if !item.IsDir && item.URLPath == tplData.URLPath {
 			mdFileIdx = i
 			break
 		}

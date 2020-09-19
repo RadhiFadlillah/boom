@@ -113,7 +113,8 @@ func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, te
 	}
 
 	// Separate base template and the others
-	baseTemplate := fp.Join(themeDir, templateName) + ".html"
+	templateName += ".html"
+	baseTemplate := fp.Join(themeDir, templateName)
 	templateFiles := []string{baseTemplate}
 
 	for _, item := range dirItems {
@@ -129,7 +130,7 @@ func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, te
 	}
 
 	// Create template
-	tpl, err := template.ParseFiles(templateFiles...)
+	tpl, err := template.New(templateName).Funcs(funcMap).ParseFiles(templateFiles...)
 	if err != nil {
 		return err
 	}
