@@ -98,7 +98,7 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 
 	if finalTrail != "" {
 		tplData.PathTrails = append(tplData.PathTrails, model.ContentPath{
-			URLPath: path.Join("/", cleanURLPath),
+			URLPath: path.Join("/", finalTrail),
 			Title:   tplData.DirTitle,
 			IsDir:   true,
 		})
