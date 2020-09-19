@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	rxTagURL = regexp.MustCompile(`(?i)#([^\s#/]+)(?:\/(\d+))?$`)
+	rxTagURL = regexp.MustCompile(`(?i)tag-([^\s#/]+)(?:\/(\d+))?$`)
 )
 
 // Worker is the one that build markdown into HTML file.

@@ -98,16 +98,17 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 
 	if finalTrail != "" {
 		tplData.PathTrails = append(tplData.PathTrails, model.ContentPath{
-			Title: tplData.DirTitle,
-			IsDir: true,
+			URLPath: path.Join("/", cleanURLPath),
+			Title:   tplData.DirTitle,
+			IsDir:   true,
 		})
 	}
 
 	// Fetch dir items
 	dirPath := fp.Dir(dirIndexMdPath)
-	dirURLPath := urlPath
+	dirURLPath := cleanURLPath
 	if dirIndexMdPath != mdFilePath {
-		dirURLPath = path.Dir(urlPath)
+		dirURLPath = path.Dir(cleanURLPath)
 	}
 
 	items, err := ioutil.ReadDir(dirPath)
@@ -196,49 +197,51 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 	// Merge sub dirs and sub files
 	dirItems := append(subDirs, subFiles...)
 
-	// Fetch all tags within active directory
-	mapDirTags := make(map[string]int)
-	fnWalk := func(path string, info os.FileInfo, err error) error {
-		// We look for markdown file
-		if info.IsDir() || fp.Ext(path) != ".md" || fp.Base(path) == "_index.md" {
+	// If we are building _index.md, fetch all tags within active directory
+	if dirIndexMdPath == mdFilePath {
+		mapDirTags := make(map[string]int)
+		fnWalk := func(path string, info os.FileInfo, err error) error {
+			// We look for markdown file
+			if info.IsDir() || fp.Ext(path) != ".md" || fp.Base(path) == "_index.md" {
+				return nil
+			}
+
+			// Parse file
+			fileMeta, _, err := wk.parsePath(path)
+			if err != nil {
+				return err
+			}
+
+			// Save tags
+			for _, tag := range fileMeta.Tags {
+				mapDirTags[tag]++
+			}
 			return nil
 		}
 
-		// Parse file
-		fileMeta, _, err := wk.parsePath(path)
+		err = fp.Walk(dirPath, fnWalk)
 		if err != nil {
 			return err
 		}
 
-		// Save tags
-		for _, tag := range fileMeta.Tags {
-			mapDirTags[tag]++
+		// Sort tags
+		dirTags := []model.TagPath{}
+		for tag, count := range mapDirTags {
+			dirTags = append(dirTags, model.TagPath{
+				URLPath: path.Join("/", dirURLPath, "tag-"+tag),
+				Name:    tag,
+				Count:   count,
+			})
 		}
-		return nil
-	}
 
-	err = fp.Walk(dirPath, fnWalk)
-	if err != nil {
-		return err
-	}
-
-	// Sort tags
-	dirTags := []model.TagPath{}
-	for tag, count := range mapDirTags {
-		dirTags = append(dirTags, model.TagPath{
-			URLPath: path.Join(dirURLPath, "#"+tag),
-			Name:    tag,
-			Count:   count,
+		sort.Slice(dirTags, func(a, b int) bool {
+			nameA := dirTags[a].Name
+			nameB := dirTags[b].Name
+			return strings.ToLower(nameA) < strings.ToLower(nameB)
 		})
+
+		tplData.DirTags = dirTags
 	}
-
-	sort.Slice(dirTags, func(a, b int) bool {
-		nameA := dirTags[a].Name
-		nameB := dirTags[b].Name
-		return strings.ToLower(nameA) < strings.ToLower(nameB)
-	})
-
-	tplData.DirTags = dirTags
 
 	// Calculate pagination stuffs, return early whenever possible
 	theme := fileMeta.Theme
@@ -285,6 +288,7 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 
 	// At this point, we are building plain markdown page
 	mdFileIdx := 0
+	urlPath = path.Join("/", urlPath)
 	for i, item := range dirItems {
 		if !item.IsDir && item.URLPath == urlPath {
 			mdFileIdx = i
@@ -299,7 +303,7 @@ func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 	sort.Strings(fileMeta.Tags)
 	for _, tag := range fileMeta.Tags {
 		tplData.Tags = append(tplData.Tags, model.TagPath{
-			URLPath: path.Join(path.Dir(urlPath), "#"+tag),
+			URLPath: path.Join("/", dirURLPath, "tag-"+tag),
 			Name:    tag,
 		})
 	}

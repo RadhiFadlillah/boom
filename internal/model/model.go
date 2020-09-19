@@ -32,7 +32,6 @@ type PageTemplate struct {
 	// Dir data
 	DirTitle    string
 	DirItems    []ContentPath
-	DirTags     []TagPath
 	PageSize    int
 	CurrentPage int
 	MaxPage     int
@@ -45,10 +44,13 @@ type PageTemplate struct {
 	UpdateTime  time.Time
 	Content     template.HTML `json:"-"`
 
-	// Special for non _index.md file
+	// Only for non _index.md file
 	Tags     []TagPath
 	PrevFile ContentPath
 	NextFile ContentPath
+
+	// Only for _index.md file
+	DirTags []TagPath
 }
 
 // TagListTemplate is template model for rendering a tag list.
