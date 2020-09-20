@@ -18,23 +18,22 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 	// Fetch page number and tag name from URL
 	tagName := ""
 	pageNumber := 1
-	urlPathSegments := strings.Split(urlPath, "/")
+	cleanURLPath := urlPath
 
-	urlPathBase := path.Base(urlPath)
+	urlPathBase := path.Base(cleanURLPath)
 	if isNum, number := isNumber(urlPathBase); isNum {
 		pageNumber = number
-		urlPathSegments = urlPathSegments[:len(urlPathSegments)-1]
+		cleanURLPath = path.Dir(cleanURLPath)
 	}
 
-	urlPathBase = path.Base(urlPath)
-	if strings.HasPrefix(urlPathBase, "#") {
-		tagName = strings.TrimPrefix(urlPathBase, "#")
-		urlPathSegments = urlPathSegments[:len(urlPathSegments)-1]
+	urlPathBase = path.Base(cleanURLPath)
+	if strings.HasPrefix(urlPathBase, "tag-") {
+		tagName = strings.TrimPrefix(urlPathBase, "tag-")
+		cleanURLPath = path.Dir(cleanURLPath)
 	}
 
 	// Now since the URL path clean from tag name and page number,
 	// we can generate path to _index.md file from it
-	cleanURLPath := path.Join(urlPathSegments...)
 	dirPath := fp.Join(wk.ContentDir, cleanURLPath)
 	dirIndexMdPath := fp.Join(dirPath, "_index.md")
 	if !isDir(dirPath) {
@@ -49,7 +48,7 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 
 	// Create template data
 	tplData := model.TagListTemplate{
-		URLPath:   urlPath,
+		URLPath:   path.Join("/", urlPath),
 		ActiveTag: tagName,
 
 		DirTitle: dirMeta.Title,
@@ -57,37 +56,48 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 	}
 
 	// Create path trails
-	tplData.PathTrails = []model.ContentPath{{
-		URLPath: path.Join(cleanURLPath, "#"+tagName),
-		Title:   "#" + tagName,
-	}}
+	fmt.Println(cleanURLPath)
+	trailSegments := strings.Split(cleanURLPath, "/")
+	if cleanURLPath != "." {
+		trailSegments = append([]string{"."}, trailSegments...)
+	}
 
-	for parentPath := cleanURLPath; parentPath != "."; parentPath = path.Dir(parentPath) {
-		parentFilePath := fp.Join(wk.ContentDir, parentPath)
+	for i := 1; i <= len(trailSegments); i++ {
+		parentPath := strings.Join(trailSegments[:i], "/")
+		parentFilePath := fp.Join(wk.ContentDir, parentPath, "_index.md")
 		parentMeta, _, err := wk.parsePath(parentFilePath)
 		if err != nil {
 			return err
 		}
 
-		tplData.PathTrails = append([]model.ContentPath{{
-			URLPath: parentPath,
+		tplData.PathTrails = append(tplData.PathTrails, model.ContentPath{
+			URLPath: path.Join("/", parentPath),
 			Title:   parentMeta.Title,
 			IsDir:   true,
-		}}, tplData.PathTrails...)
+		})
 	}
+
+	tplData.PathTrails = append(tplData.PathTrails, model.ContentPath{
+		URLPath: path.Join("/", cleanURLPath, "tag-"+tagName),
+		Title:   "#" + tagName,
+	})
 
 	// Fetch files that uses our active tag
 	files := []model.ContentPath{}
-	fnWalk := func(path string, info os.FileInfo, err error) error {
+	fnWalk := func(fPath string, info os.FileInfo, err error) error {
 		// We look for markdown file
-		if info.IsDir() || fp.Ext(path) != ".md" || fp.Base(path) == "_index.md" {
+		if info.IsDir() || fp.Ext(fPath) != ".md" || fp.Base(fPath) == "_index.md" {
 			return nil
 		}
 
 		// Parse file
-		fileMeta, _, err := wk.parsePath(path)
+		fileMeta, _, err := wk.parsePath(fPath)
 		if err != nil {
 			return err
+		}
+
+		if fileMeta.Draft {
+			return nil
 		}
 
 		// Make sure this file uses active tag
@@ -104,8 +114,8 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 		}
 
 		// Generate URL path
-		path = strings.TrimSuffix(path, ".md")
-		fileURLPath, err := fp.Rel(wk.ContentDir, path)
+		fPath = strings.TrimSuffix(fPath, ".md")
+		fileURLPath, err := fp.Rel(wk.ContentDir, fPath)
 		if err != nil {
 			return err
 		}
@@ -118,7 +128,7 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 
 		files = append(files, model.ContentPath{
 			Title:      fileMeta.Title,
-			URLPath:    fileURLPath,
+			URLPath:    path.Join("/", fileURLPath),
 			UpdateTime: fileTime,
 		})
 		return nil

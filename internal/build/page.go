@@ -18,17 +18,16 @@ import (
 func (wk *Worker) buildPage(urlPath string, w io.Writer) error {
 	// Fetch page number from URL
 	pageNumber := -1
+	cleanURLPath := urlPath
 
 	urlPathBase := path.Base(urlPath)
-	urlPathSegments := strings.Split(urlPath, "/")
 	if isNum, number := isNumber(urlPathBase); isNum {
 		pageNumber = number
-		urlPathSegments = urlPathSegments[:len(urlPathSegments)-1]
+		cleanURLPath = path.Dir(cleanURLPath)
 	}
 
 	// Now since the URL path clean from page number, we can generate
 	// file path to process.
-	cleanURLPath := path.Join(urlPathSegments...)
 	mdFilePath := fp.Join(wk.ContentDir, cleanURLPath)
 	dirIndexMdPath := ""
 
