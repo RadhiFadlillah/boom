@@ -56,7 +56,6 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 	}
 
 	// Create path trails
-	fmt.Println(cleanURLPath)
 	trailSegments := strings.Split(cleanURLPath, "/")
 	if cleanURLPath != "." {
 		trailSegments = append([]string{"."}, trailSegments...)
