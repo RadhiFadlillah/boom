@@ -239,8 +239,8 @@ func (wk *Worker) parseMarkdown(mdPath string) (meta model.Metadata, htmlContent
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "+++" {
+		line := scanner.Text()
+		if strings.TrimSpace(line) == "+++" {
 			separatorCount++
 			continue
 		}

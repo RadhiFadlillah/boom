@@ -59,12 +59,8 @@ func dirIsEmpty(dirPath string) bool {
 
 func convertMarkdownToHTML(bt []byte) ([]byte, error) {
 	highlighter := highlighting.NewHighlighting(
-		highlighting.WithStyle("emacs"),
 		highlighting.WithFormatOptions(
 			chromahtml.WithClasses(true),
-			chromahtml.WithLineNumbers(true),
-			chromahtml.LinkableLineNumbers(true, ""),
-			chromahtml.LineNumbersInTable(true),
 		),
 	)
 
