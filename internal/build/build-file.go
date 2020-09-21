@@ -108,13 +108,14 @@ func (wk *Worker) buildFile(urlPath string, w io.Writer) error {
 		itemName = strings.TrimSuffix(itemName, itemExt)
 		itemURLPath := path.Join("/", dirURLPath, itemName)
 		dirFiles = append(dirFiles, model.ContentPath{
-			URLPath:    path.Join("/", itemURLPath),
+			URLPath:    itemURLPath,
 			Title:      itemMeta.Title,
 			UpdateTime: itemTime,
 		})
 
 		// If this item is the current file, save its index
-		if itemURLPath == urlPath {
+		fmt.Println(itemURLPath, urlPath)
+		if itemURLPath == tplData.URLPath {
 			fileIdx = len(dirFiles) - 1
 			continue
 		}
@@ -124,12 +125,14 @@ func (wk *Worker) buildFile(urlPath string, w io.Writer) error {
 		}
 	}
 
-	if fileIdx > 0 {
-		tplData.NextFile = dirFiles[fileIdx-1]
-	}
+	if fileIdx >= 0 {
+		if fileIdx > 0 {
+			tplData.PrevFile = dirFiles[fileIdx-1]
+		}
 
-	if fileIdx < len(dirFiles)-1 {
-		tplData.PrevFile = dirFiles[fileIdx+1]
+		if fileIdx < len(dirFiles)-1 {
+			tplData.NextFile = dirFiles[fileIdx+1]
+		}
 	}
 
 	// Render HTML
