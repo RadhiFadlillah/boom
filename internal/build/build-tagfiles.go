@@ -13,8 +13,8 @@ import (
 	"github.com/go-boom/boom/internal/model"
 )
 
-// buildTagList builds tag list page for specified URL path.
-func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
+// buildTagFiles builds tag files list for specified URL path.
+func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) error {
 	// Fetch page number and tag name from URL
 	tagName := ""
 	pageNumber := 1
@@ -35,33 +35,32 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 	// Now since the URL path clean from tag name and page number,
 	// we can generate path to _index.md file from it
 	dirPath := fp.Join(wk.ContentDir, cleanURLPath)
-	dirIndexMdPath := fp.Join(dirPath, "_index.md")
+	indexMdPath := fp.Join(wk.ContentDir, cleanURLPath, "_index.md")
 	if !isDir(dirPath) {
 		return fmt.Errorf("%s is not part of site content", urlPath)
 	}
 
-	// Parse the markdown path
-	dirMeta, _, err := wk.parsePath(dirIndexMdPath)
+	// Parse metadata
+	meta, _, err := wk.parsePath(indexMdPath)
 	if err != nil {
 		return err
 	}
 
 	// Create template data
-	tplData := model.TagListTemplate{
+	tplData := model.TagFilesTemplate{
 		URLPath:   path.Join("/", urlPath),
 		ActiveTag: tagName,
-
-		DirTitle: dirMeta.Title,
-		PageSize: dirMeta.Pagination,
+		Title:     meta.Title,
+		PageSize:  meta.Pagination,
 	}
 
 	// Create path trails
 	trailSegments := strings.Split(cleanURLPath, "/")
-	if cleanURLPath != "." {
+	if cleanURLPath != "" && cleanURLPath != "." && len(trailSegments) > 0 {
 		trailSegments = append([]string{"."}, trailSegments...)
 	}
 
-	for i := 1; i <= len(trailSegments); i++ {
+	for i := 1; i < len(trailSegments); i++ {
 		parentPath := strings.Join(trailSegments[:i], "/")
 		parentFilePath := fp.Join(wk.ContentDir, parentPath, "_index.md")
 		parentMeta, _, err := wk.parsePath(parentFilePath)
@@ -76,10 +75,16 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 		})
 	}
 
-	tplData.PathTrails = append(tplData.PathTrails, model.ContentPath{
-		URLPath: path.Join("/", cleanURLPath, "tag-"+tagName),
-		Title:   "#" + tagName,
-	})
+	tplData.PathTrails = append(tplData.PathTrails,
+		model.ContentPath{
+			URLPath: path.Join("/", cleanURLPath),
+			Title:   meta.Title,
+		},
+		model.ContentPath{
+			URLPath: path.Join("/", cleanURLPath, "tag-"+tagName),
+			Title:   "#" + tagName,
+		},
+	)
 
 	// Fetch files that uses our active tag
 	files := []model.ContentPath{}
@@ -145,42 +150,38 @@ func (wk *Worker) buildTagList(urlPath string, w io.Writer) error {
 		return timeA.After(timeB)
 	})
 
-	// Calculate pagination stuffs, return early whenever possible
-	theme := dirMeta.Theme
-	templateName := dirMeta.TagListTemplate
-	if templateName == "" {
-		templateName = "taglist"
-	}
-
-	// Handle case when pagination not used
+	// Calculate pagination stuffs
 	if tplData.PageSize <= 0 {
 		tplData.CurrentPage = 1
 		tplData.MaxPage = 1
 		tplData.Files = files
-		return wk.renderHTML(w, tplData, theme, templateName)
+	} else {
+		tplData.MaxPage = int(math.Ceil(float64(len(files)) / float64(tplData.PageSize)))
+
+		switch {
+		case pageNumber <= 0:
+			tplData.CurrentPage = 1
+		case pageNumber > tplData.MaxPage:
+			tplData.CurrentPage = tplData.MaxPage
+		default:
+			tplData.CurrentPage = pageNumber
+		}
+
+		startIdx := (tplData.CurrentPage - 1) * tplData.PageSize
+		endIdx := (tplData.CurrentPage * tplData.PageSize)
+		if nFiles := len(files); endIdx > nFiles {
+			endIdx = nFiles
+		}
+
+		tplData.Files = files[startIdx:endIdx]
 	}
 
-	// Calculate max page
-	tplData.MaxPage = int(math.Ceil(float64(len(files)) / float64(tplData.PageSize)))
-
-	// Save page number to template data
-	switch {
-	case pageNumber <= 0:
-		tplData.CurrentPage = 1
-	case pageNumber > tplData.MaxPage:
-		tplData.CurrentPage = tplData.MaxPage
-	default:
-		tplData.CurrentPage = pageNumber
+	// Render HTML
+	theme := meta.Theme
+	templateName := meta.Template
+	if templateName == "" {
+		templateName = "tagfiles"
 	}
-
-	// Slice files only for this page
-	startIdx := (tplData.CurrentPage - 1) * tplData.PageSize
-	endIdx := (tplData.CurrentPage * tplData.PageSize)
-	if nFiles := len(files); endIdx > nFiles {
-		endIdx = nFiles
-	}
-
-	tplData.Files = files[startIdx:endIdx]
 
 	return wk.renderHTML(w, tplData, theme, templateName)
 }

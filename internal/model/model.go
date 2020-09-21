@@ -24,43 +24,47 @@ type Metadata struct {
 	Pagination      int    `toml:",omitempty"`
 }
 
-// PageTemplate is template model for rendering a page.
-type PageTemplate struct {
+// DirTemplate is template model for rendering a directory.
+type DirTemplate struct {
 	URLPath    string
 	PathTrails []ContentPath
 
-	// Dir data
-	DirTitle    string
-	DirItems    []ContentPath
+	Title       string
+	Description string
+	Author      string
+	Content     template.HTML
+	ChildItems  []ContentPath
+	ChildTags   []TagPath
+
 	PageSize    int
 	CurrentPage int
 	MaxPage     int
+}
 
-	// File data
+// FileTemplate is template model for rendering a file.
+type FileTemplate struct {
+	URLPath    string
+	PathTrails []ContentPath
+
 	Title       string
 	Description string
 	Author      string
 	CreateTime  time.Time
 	UpdateTime  time.Time
-	Content     template.HTML `json:"-"`
+	Content     template.HTML
 
-	// Only for non _index.md file
 	Tags     []TagPath
 	PrevFile ContentPath
 	NextFile ContentPath
-
-	// Only for _index.md file
-	DirTags []TagPath
 }
 
-// TagListTemplate is template model for rendering a tag list.
-type TagListTemplate struct {
+// TagFilesTemplate is template model for rendering a tag file list.
+type TagFilesTemplate struct {
 	URLPath    string
 	PathTrails []ContentPath
 	ActiveTag  string
 
-	// Dir data
-	DirTitle    string
+	Title       string
 	Files       []ContentPath
 	PageSize    int
 	CurrentPage int

@@ -79,11 +79,16 @@ func (wk *Worker) Build(urlPath string, w io.Writer) error {
 	}
 
 	// Build page depending on URL path
-	if rxTagURL.MatchString(urlPath) {
-		return wk.buildTagList(urlPath, w)
-	}
+	switch {
+	case rxTagURL.MatchString(urlPath):
+		return wk.buildTagFiles(urlPath, w)
 
-	return wk.buildPage(urlPath, w)
+	case isFile(fp.Join(wk.ContentDir, urlPath+".md")):
+		return wk.buildFile(urlPath, w)
+
+	default:
+		return wk.buildDir(urlPath, w)
+	}
 }
 
 // createTemplate creates HTML template from specified theme and template name.
