@@ -140,9 +140,6 @@ func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, te
 		return err
 	}
 
-	// bt, _ := json.MarshalIndent(data, "", "  ")
-	// fmt.Println(string(bt))
-
 	return tpl.Execute(w, data)
 }
 

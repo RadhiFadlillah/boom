@@ -114,7 +114,6 @@ func (wk *Worker) buildFile(urlPath string, w io.Writer) error {
 		})
 
 		// If this item is the current file, save its index
-		fmt.Println(itemURLPath, urlPath)
 		if itemURLPath == tplData.URLPath {
 			fileIdx = len(dirFiles) - 1
 			continue
