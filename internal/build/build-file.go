@@ -1,6 +1,7 @@
 package build
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,6 +12,9 @@ import (
 
 	"github.com/go-boom/boom/internal/model"
 )
+
+// ErrDraftFile is error to notify that file is a draft.
+var ErrDraftFile = errors.New("file is draft")
 
 // buildFile builds file for specified URL path.
 func (wk *Worker) buildFile(urlPath string, w io.Writer) error {
@@ -24,6 +28,11 @@ func (wk *Worker) buildFile(urlPath string, w io.Writer) error {
 	meta, content, err := wk.parsePath(filePath)
 	if err != nil {
 		return err
+	}
+
+	// If it's draft, stop early
+	if meta.Draft && !wk.buildDraft {
+		return ErrDraftFile
 	}
 
 	// Create template data
@@ -95,7 +104,7 @@ func (wk *Worker) buildFile(urlPath string, w io.Writer) error {
 			return err
 		}
 
-		if itemMeta.Draft {
+		if itemMeta.Draft && !wk.buildDraft {
 			continue
 		}
 

@@ -15,7 +15,7 @@ type Handler struct {
 }
 
 func newHandler(rootDir string) (Handler, error) {
-	worker, err := build.NewWorker(rootDir, false)
+	worker, err := build.NewWorker(rootDir, false, true)
 	if err != nil {
 		return Handler{}, err
 	}
@@ -42,6 +42,6 @@ func (hdl *Handler) serveSite(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// If not, it must be content that need to be build
 	w.Header().Set("Content-Type", "text/html")
-	err := hdl.Build(urlPath, w)
+	_, err := hdl.Build(urlPath, w)
 	panicError(err)
 }

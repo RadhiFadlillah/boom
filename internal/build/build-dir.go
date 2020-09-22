@@ -9,13 +9,14 @@ import (
 	"path"
 	fp "path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/go-boom/boom/internal/model"
 )
 
 // buildDir builds directory for specified URL path.
-func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
+func (wk *Worker) buildDir(urlPath string, w io.Writer) ([]string, error) {
 	// Fetch page number from URL
 	pageNumber := -1
 	cleanURLPath := urlPath
@@ -31,13 +32,13 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
 	dirPath := fp.Join(wk.ContentDir, cleanURLPath)
 	indexMdPath := fp.Join(wk.ContentDir, cleanURLPath, "_index.md")
 	if !isDir(dirPath) {
-		return fmt.Errorf("%s is not part of site content", urlPath)
+		return nil, fmt.Errorf("%s is not part of site content", urlPath)
 	}
 
 	// Parse metadata
 	meta, content, err := wk.parsePath(indexMdPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Create template data
@@ -46,8 +47,12 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
 		Title:       meta.Title,
 		Description: meta.Description,
 		Author:      meta.Author,
-		Content:     content,
 		PageSize:    meta.Pagination,
+	}
+
+	// Set content
+	if !meta.Draft || (meta.Draft && wk.buildDraft) {
+		tplData.Content = content
 	}
 
 	// Create path trails
@@ -61,7 +66,7 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
 		parentFilePath := fp.Join(wk.ContentDir, parentPath, "_index.md")
 		parentMeta, _, err := wk.parsePath(parentFilePath)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		tplData.PathTrails = append(tplData.PathTrails, model.ContentPath{
@@ -80,7 +85,7 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
 	// Fetch child items
 	items, err := ioutil.ReadDir(dirPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	subDirs := []model.ContentPath{}
@@ -93,13 +98,13 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
 
 		itemMeta, _, err := wk.parsePath(itemPath)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if item.IsDir() {
 			subDirItems, err := ioutil.ReadDir(itemPath)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			nChild := 0
@@ -116,7 +121,7 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
 
 				subItemPath := fp.Join(itemPath, subItemName)
 				subItemMeta, _, _ := wk.parsePath(subItemPath)
-				if !subItemMeta.Draft {
+				if !subItemMeta.Draft || (subItemMeta.Draft && wk.buildDraft) {
 					nChild++
 				}
 			}
@@ -131,7 +136,7 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
 		}
 
 		if !item.IsDir() && itemExt == ".md" && itemName != "_index.md" {
-			if itemMeta.Draft {
+			if itemMeta.Draft && !wk.buildDraft {
 				continue
 			}
 
@@ -187,7 +192,7 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
 
 	err = fp.Walk(dirPath, fnWalk)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Sort tags
@@ -234,6 +239,23 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
 		tplData.ChildItems = dirItems[startIdx:endIdx]
 	}
 
+	// Create child URLs
+	childURLs := []string{}
+
+	for _, child := range tplData.ChildItems {
+		childURLs = append(childURLs, strings.TrimPrefix(child.URLPath, "/"))
+	}
+
+	for _, tag := range tplData.ChildTags {
+		childURLs = append(childURLs, strings.TrimPrefix(tag.URLPath, "/"))
+	}
+
+	if tplData.MaxPage > 1 {
+		for i := 1; i <= tplData.MaxPage; i++ {
+			childURLs = append(childURLs, path.Join(cleanURLPath, strconv.Itoa(i)))
+		}
+	}
+
 	// Render HTML
 	theme := meta.Theme
 	templateName := meta.Template
@@ -241,5 +263,5 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) error {
 		templateName = "directory"
 	}
 
-	return wk.renderHTML(w, tplData, theme, templateName)
+	return childURLs, wk.renderHTML(w, tplData, theme, templateName)
 }

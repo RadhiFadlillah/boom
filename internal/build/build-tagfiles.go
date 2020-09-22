@@ -8,13 +8,14 @@ import (
 	"path"
 	fp "path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/go-boom/boom/internal/model"
 )
 
 // buildTagFiles builds tag files list for specified URL path.
-func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) error {
+func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) ([]string, error) {
 	// Fetch page number and tag name from URL
 	tagName := ""
 	pageNumber := 1
@@ -37,13 +38,13 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) error {
 	dirPath := fp.Join(wk.ContentDir, cleanURLPath)
 	indexMdPath := fp.Join(wk.ContentDir, cleanURLPath, "_index.md")
 	if !isDir(dirPath) {
-		return fmt.Errorf("%s is not part of site content", urlPath)
+		return nil, fmt.Errorf("%s is not part of site content", urlPath)
 	}
 
 	// Parse metadata
 	meta, _, err := wk.parsePath(indexMdPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Create template data
@@ -65,7 +66,7 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) error {
 		parentFilePath := fp.Join(wk.ContentDir, parentPath, "_index.md")
 		parentMeta, _, err := wk.parsePath(parentFilePath)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		tplData.PathTrails = append(tplData.PathTrails, model.ContentPath{
@@ -100,7 +101,7 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) error {
 			return err
 		}
 
-		if fileMeta.Draft {
+		if fileMeta.Draft && !wk.buildDraft {
 			return nil
 		}
 
@@ -140,7 +141,7 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) error {
 
 	err = fp.Walk(dirPath, fnWalk)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Sort files
@@ -176,6 +177,15 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) error {
 		tplData.Files = files[startIdx:endIdx]
 	}
 
+	// Create child URLs
+	childURLs := []string{}
+	if tplData.MaxPage > 1 {
+		for i := 1; i <= tplData.MaxPage; i++ {
+			pageURL := path.Join(cleanURLPath, "tag-"+tagName, strconv.Itoa(i))
+			childURLs = append(childURLs, pageURL)
+		}
+	}
+
 	// Render HTML
 	theme := meta.Theme
 	templateName := meta.Template
@@ -183,5 +193,5 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) error {
 		templateName = "tagfiles"
 	}
 
-	return wk.renderHTML(w, tplData, theme, templateName)
+	return childURLs, wk.renderHTML(w, tplData, theme, templateName)
 }

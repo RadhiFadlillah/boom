@@ -24,15 +24,17 @@ var (
 type Worker struct {
 	RootDir      string
 	ContentDir   string
+	buildDraft   bool
 	cacheEnabled bool
 
-	metaCache map[string]model.Metadata
-	htmlCache map[string]template.HTML
+	metaCache     map[string]model.Metadata
+	htmlCache     map[string]template.HTML
+	templateCache map[string]*template.Template
 }
 
 // NewWorker returns a new worker. Requires root dir which point to directory
 // where site lives.
-func NewWorker(rootDir string, enableCache bool) (wk Worker, err error) {
+func NewWorker(rootDir string, enableCache bool, buildDraft bool) (wk Worker, err error) {
 	// Make sure root dir is a valid dir
 	if !isDir(rootDir) {
 		err = errors.New("the specified root dir is not a directory")
@@ -53,11 +55,13 @@ func NewWorker(rootDir string, enableCache bool) (wk Worker, err error) {
 
 	// Create a new worker
 	wk = Worker{
-		RootDir:      rootDir,
-		ContentDir:   contentDir,
-		cacheEnabled: enableCache,
-		metaCache:    make(map[string]model.Metadata),
-		htmlCache:    make(map[string]template.HTML),
+		RootDir:       rootDir,
+		ContentDir:    contentDir,
+		buildDraft:    buildDraft,
+		cacheEnabled:  enableCache,
+		metaCache:     make(map[string]model.Metadata),
+		htmlCache:     make(map[string]template.HTML),
+		templateCache: make(map[string]*template.Template),
 	}
 	return
 }
@@ -66,7 +70,7 @@ func NewWorker(rootDir string, enableCache bool) (wk Worker, err error) {
 // There are two possible URL path combination :
 // 1. It's pointed directly to content, e.g. /blog/awesome or /blog/awesome/1
 // 2. It's URL for tag list, e.g. /blog/awesome/#cat or /blog/awesome/#cat/2
-func (wk *Worker) Build(urlPath string, w io.Writer) error {
+func (wk *Worker) Build(urlPath string, w io.Writer) ([]string, error) {
 	// Trim trailing slash and hash from URL path
 	for {
 		urlPathLength := len(urlPath)
@@ -79,20 +83,33 @@ func (wk *Worker) Build(urlPath string, w io.Writer) error {
 	}
 
 	// Build page depending on URL path
+	var err error
+	var childURLs []string
+
 	switch {
 	case rxTagURL.MatchString(urlPath):
-		return wk.buildTagFiles(urlPath, w)
+		childURLs, err = wk.buildTagFiles(urlPath, w)
 
 	case isFile(fp.Join(wk.ContentDir, urlPath+".md")):
-		return wk.buildFile(urlPath, w)
+		err = wk.buildFile(urlPath, w)
 
 	default:
-		return wk.buildDir(urlPath, w)
+		childURLs, err = wk.buildDir(urlPath, w)
 	}
+
+	return childURLs, err
 }
 
 // createTemplate creates HTML template from specified theme and template name.
 func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, templateName string) error {
+	// Check if template already cached
+	if wk.cacheEnabled {
+		combinedName := themeName + "-" + templateName
+		if tpl, exist := wk.templateCache[combinedName]; exist {
+			return tpl.Execute(w, data)
+		}
+	}
+
 	// Find theme dir
 	themeDir := fp.Join(wk.RootDir, "themes", themeName)
 
@@ -134,13 +151,24 @@ func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, te
 		templateFiles = append(templateFiles, fp.Join(themeDir, name))
 	}
 
-	// Create template
+	// Create and execute template
 	tpl, err := template.New(templateName).Funcs(wk.funcMap()).ParseFiles(templateFiles...)
 	if err != nil {
 		return err
 	}
 
-	return tpl.Execute(w, data)
+	err = tpl.Execute(w, data)
+	if err != nil {
+		return err
+	}
+
+	// Save to cache
+	if wk.cacheEnabled {
+		combinedName := themeName + "-" + templateName
+		wk.templateCache[combinedName] = tpl
+	}
+
+	return nil
 }
 
 // parsePath parse markdown file in specified path. It's like `parseMarkdown`
