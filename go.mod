@@ -6,6 +6,7 @@ require (
 	github.com/alecthomas/chroma v0.8.1
 	github.com/gookit/color v1.3.1
 	github.com/julienschmidt/httprouter v1.3.0
+	github.com/litao91/goldmark-mathjax v0.0.0-20200921072530-4c5dae64834a
 	github.com/pelletier/go-toml v1.8.1
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v1.0.0

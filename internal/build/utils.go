@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	chromahtml "github.com/alecthomas/chroma/formatters/html"
+	mathjax "github.com/litao91/goldmark-mathjax"
 	"github.com/yuin/goldmark"
 	emoji "github.com/yuin/goldmark-emoji"
 	highlighting "github.com/yuin/goldmark-highlighting"
@@ -72,6 +73,7 @@ func convertMarkdownToHTML(bt []byte) ([]byte, error) {
 			extension.Footnote,
 			emoji.Emoji,
 			highlighter,
+			mathjax.MathJax,
 		),
 		goldmark.WithRendererOptions(
 			html.WithHardWraps(),
