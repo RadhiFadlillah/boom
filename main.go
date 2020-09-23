@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/go-boom/boom/internal/cmd"
+	"github.com/RadhiFadlillah/boom/internal/cmd"
 	"github.com/sirupsen/logrus"
 )
 

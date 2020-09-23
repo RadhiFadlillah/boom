@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-boom/boom/internal/model"
+	"github.com/RadhiFadlillah/boom/internal/model"
 )
 
 // buildDir builds directory for specified URL path.

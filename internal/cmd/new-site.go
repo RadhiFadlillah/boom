@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-boom/boom/internal/model"
+	"github.com/RadhiFadlillah/boom/internal/model"
 	"github.com/pelletier/go-toml"
 	"github.com/spf13/cobra"
 )

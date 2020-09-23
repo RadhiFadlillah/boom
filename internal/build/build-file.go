@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/go-boom/boom/internal/model"
+	"github.com/RadhiFadlillah/boom/internal/model"
 )
 
 // ErrDraftFile is error to notify that file is a draft.

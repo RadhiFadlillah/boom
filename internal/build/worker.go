@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/go-boom/boom/internal/model"
+	"github.com/RadhiFadlillah/boom/internal/model"
 	"github.com/pelletier/go-toml"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
