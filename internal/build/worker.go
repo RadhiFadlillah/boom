@@ -14,6 +14,8 @@ import (
 
 	"github.com/go-boom/boom/internal/model"
 	"github.com/pelletier/go-toml"
+	"github.com/tdewolff/minify/v2"
+	"github.com/tdewolff/minify/v2/html"
 )
 
 var (
@@ -22,19 +24,29 @@ var (
 
 // Worker is the one that build markdown into HTML file.
 type Worker struct {
-	RootDir      string
-	ContentDir   string
+	RootDir    string
+	ContentDir string
+
 	buildDraft   bool
 	cacheEnabled bool
+	minifyOutput bool
 
+	minifier      *minify.M
 	metaCache     map[string]model.Metadata
 	htmlCache     map[string]template.HTML
 	templateCache map[string]*template.Template
 }
 
+// Config is configuration for Worker.
+type Config struct {
+	EnableCache  bool
+	BuildDraft   bool
+	MinifyOutput bool
+}
+
 // NewWorker returns a new worker. Requires root dir which point to directory
 // where site lives.
-func NewWorker(rootDir string, enableCache bool, buildDraft bool) (wk Worker, err error) {
+func NewWorker(rootDir string, cfg Config) (wk Worker, err error) {
 	// Make sure root dir is a valid dir
 	if !isDir(rootDir) {
 		err = errors.New("the specified root dir is not a directory")
@@ -53,12 +65,18 @@ func NewWorker(rootDir string, enableCache bool, buildDraft bool) (wk Worker, er
 		return
 	}
 
+	// Create minifier
+	minifier := minify.New()
+	minifier.AddFunc("text/html", html.Minify)
+
 	// Create a new worker
 	wk = Worker{
 		RootDir:       rootDir,
 		ContentDir:    contentDir,
-		buildDraft:    buildDraft,
-		cacheEnabled:  enableCache,
+		buildDraft:    cfg.BuildDraft,
+		cacheEnabled:  cfg.EnableCache,
+		minifyOutput:  cfg.MinifyOutput,
+		minifier:      minifier,
 		metaCache:     make(map[string]model.Metadata),
 		htmlCache:     make(map[string]template.HTML),
 		templateCache: make(map[string]*template.Template),
@@ -157,9 +175,22 @@ func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, te
 		return err
 	}
 
-	err = tpl.Execute(w, data)
+	var output io.Writer
+	if wk.minifyOutput {
+		output = wk.minifier.Writer("text/html", w)
+	} else {
+		output = w
+	}
+
+	err = tpl.Execute(output, data)
 	if err != nil {
 		return err
+	}
+
+	if wc, ok := output.(io.WriteCloser); ok {
+		if err = wc.Close(); err != nil {
+			return err
+		}
 	}
 
 	// Save to cache

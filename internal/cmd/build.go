@@ -114,8 +114,14 @@ func buildHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Build site content
+	cfg := build.Config{
+		EnableCache:  true,
+		BuildDraft:   false,
+		MinifyOutput: true,
+	}
+
 	processedURLs := make(map[string]struct{})
-	wk, err := build.NewWorker(rootDir, true, false)
+	wk, err := build.NewWorker(rootDir, cfg)
 	panicError(err)
 
 	var buildFunc func(string) error

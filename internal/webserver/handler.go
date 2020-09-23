@@ -15,7 +15,13 @@ type Handler struct {
 }
 
 func newHandler(rootDir string) (Handler, error) {
-	worker, err := build.NewWorker(rootDir, false, true)
+	cfg := build.Config{
+		EnableCache:  false,
+		BuildDraft:   true,
+		MinifyOutput: false,
+	}
+
+	worker, err := build.NewWorker(rootDir, cfg)
 	if err != nil {
 		return Handler{}, err
 	}
