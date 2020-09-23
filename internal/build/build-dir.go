@@ -42,7 +42,7 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) ([]string, error) {
 	}
 
 	// Create template data
-	tplData := model.DirTemplate{
+	tplData := model.DirData{
 		URLPath:     path.Join("/", urlPath),
 		Title:       meta.Title,
 		Description: meta.Description,

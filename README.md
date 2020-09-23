@@ -57,17 +57,17 @@ This directory is used to store themes that used in the generated site. You can 
 
 ### "assets" directory
 
-This directory is used to store assets that used in the generated site. You can structure your assets freely depending on your requirements. For example :
+This directory is used to store assets that used in the generated site. You can structure your assets freely depending on your requirements. Just remember that the structure will be used later for URL path. For example :
 
 ```
 .
 └── assets/
-    ├── image-1.jpg
-    ├── image-2.png
+    ├── image-1.jpg					// https://example.com/assets/image-1.jpg
+    ├── image-2.png					// https://example.com/assets/image-2.png
     └── portofolio/
         └── app-1/
-            ├── screenshot-1.png
-            └── screenshot-2.png
+            ├── screenshot-1.png	// https://example.com/assets/portofolio/app-1/screenshot-1.png
+            └── screenshot-2.png	// https://example.com/assets/portofolio/app-1/screenshot-2.png
 ```
 
 ### "content" directory
@@ -104,6 +104,12 @@ As long as you follow rules above, you can customize your content structure to f
         └── post-3.md     // https://example.com/category-2/post-3
 ```
 
+The only limitations for content structure are :
+
+- There must be no directories named `assets` and `themes` in root of `content` directory;
+- There must be no files named `assets.md` and `themes.md` in root of `content` directory;
+- There must be no files named `tag-*.md` and directories named `tag-*` anywhere within content directory.
+
 ## Metadata
 
 It's recommended to put metadata on your markdown file. Metadata in `boom` is stored as [TOML file][1] which fulfill struct below :
@@ -128,7 +134,7 @@ type Metadata struct {
 }
 ```
 
-The metadata is put above your markdown file, surrounded by `+++` (inspired by Hugo) :
+The metadata is put above your markdown file, surrounded by `+++` (inspired by [Hugo][2]) :
 
 ```
 +++
@@ -158,9 +164,112 @@ Here are the explanation for each field :
 
 If part of metadata is omitted, `boom` will use metadata from the page's parent directory. With that said, you must at least create `_index.md` with valid metadata in root `content` directory, as the fallback for pages with incomplete metadata.
 
+## Theming
+
+Say we want to create a theme called `simple` for our site. To do so, we need to create a directory with following structure :
+
+```
+.
+└── themes/
+    └── simple/
+        ├── directory.html
+        ├── file.html
+        └── tagfiles.html
+```
+
+Those three HTML will be later used for rendering HTML files for our site :
+
+- `directory.html` is template for rendering directory;
+- `file.html` is template for rendering `*.md` files;
+- `tagfiles.html` is template for rendering list of files with specified tag.
+
+The rendering process will uses [`html/template`][3] package that provided by Go standard library. There are three structs that used as data when rendering templates :
+
+- `DirData` is data that used when rendering directory :
+
+	```go
+	type DirData struct {
+		URLPath    string
+		PathTrails []ContentPath
+
+		Title       string
+		Description string
+		Author      string
+		Content     template.HTML
+		ChildItems  []ContentPath
+		ChildTags   []TagPath
+
+		PageSize    int
+		CurrentPage int
+		MaxPage     int
+	}
+	```
+
+- `FileData` is data that used when rendering file :
+
+	```go
+	type FileData struct {
+		URLPath    string
+		PathTrails []ContentPath
+
+		Title       string
+		Description string
+		Author      string
+		CreateTime  time.Time
+		UpdateTime  time.Time
+		Content     template.HTML
+
+		Tags     []TagPath
+		PrevFile ContentPath
+		NextFile ContentPath
+	}
+	```
+
+- `TagFilesData` is data that used when rendering `tagfiles` template :
+
+	```go
+	type TagFilesData struct {
+		URLPath    string
+		PathTrails []ContentPath
+		ActiveTag  string
+
+		Title       string
+		Files       []ContentPath
+		PageSize    int
+		CurrentPage int
+		MaxPage     int
+	}
+	```
+
+As you can see, all of those data structs use `ContentPath` and `TagPath` which structured like this :
+
+```go
+// ContentPath is path to a content.
+type ContentPath struct {
+	// Common
+	IsDir   bool
+	URLPath string
+	Title   string
+
+	// File only
+	UpdateTime time.Time
+
+	// Dir only
+	NChild int
+}
+
+// TagPath is path to a tag files.
+type TagPath struct {
+	URLPath string
+	Name    string
+	Count   int
+}
+```
+
 ## License
 
 Boom is distributed under Apache-2.0 License. Basically, it means you can do what you like with the software. However, if you modify it, you have to include the license and notices, and state what did you change.
 
 [1]: https://toml.io/en/v1.0.0-rc.1
 [2]: https://gohugo.io/content-management/front-matter/
+[3]: https://golang.org/pkg/html/template/

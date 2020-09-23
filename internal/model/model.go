@@ -24,8 +24,8 @@ type Metadata struct {
 	Pagination       int    `toml:",omitempty"`
 }
 
-// DirTemplate is template model for rendering a directory.
-type DirTemplate struct {
+// DirData is data that used when rendering a directory.
+type DirData struct {
 	URLPath    string
 	PathTrails []ContentPath
 
@@ -41,8 +41,8 @@ type DirTemplate struct {
 	MaxPage     int
 }
 
-// FileTemplate is template model for rendering a file.
-type FileTemplate struct {
+// FileData is data that used when rendering a file.
+type FileData struct {
 	URLPath    string
 	PathTrails []ContentPath
 
@@ -58,8 +58,8 @@ type FileTemplate struct {
 	NextFile ContentPath
 }
 
-// TagFilesTemplate is template model for rendering a tag file list.
-type TagFilesTemplate struct {
+// TagFilesData is template model for rendering a tag file list.
+type TagFilesData struct {
 	URLPath    string
 	PathTrails []ContentPath
 	ActiveTag  string
@@ -85,7 +85,7 @@ type ContentPath struct {
 	NChild int
 }
 
-// TagPath is path to a content.
+// TagPath is path to a tag files.
 type TagPath struct {
 	URLPath string
 	Name    string

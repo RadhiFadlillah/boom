@@ -48,7 +48,7 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) ([]string, error) {
 	}
 
 	// Create template data
-	tplData := model.TagFilesTemplate{
+	tplData := model.TagFilesData{
 		URLPath:   path.Join("/", urlPath),
 		ActiveTag: tagName,
 		Title:     meta.Title,

@@ -36,7 +36,7 @@ func (wk *Worker) buildFile(urlPath string, w io.Writer) error {
 	}
 
 	// Create template data
-	tplData := model.FileTemplate{
+	tplData := model.FileData{
 		URLPath:     path.Join("/", urlPath),
 		Title:       meta.Title,
 		Description: meta.Description,
