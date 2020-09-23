@@ -188,7 +188,7 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) ([]string, error) {
 
 	// Render HTML
 	theme := meta.Theme
-	templateName := meta.Template
+	templateName := meta.TagFilesTemplate
 	if templateName == "" {
 		templateName = "tagfiles"
 	}

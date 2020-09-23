@@ -145,7 +145,7 @@ func (wk *Worker) buildFile(urlPath string, w io.Writer) error {
 
 	// Render HTML
 	theme := meta.Theme
-	templateName := meta.Template
+	templateName := meta.FileTemplate
 	if templateName == "" {
 		templateName = "file"
 	}

@@ -17,11 +17,11 @@ type Metadata struct {
 	Draft       bool      `toml:",omitempty"`
 
 	// Theme's metadatas
-	Theme           string `toml:",omitempty"`
-	Template        string `toml:",omitempty"`
-	ChildTemplate   string `toml:",omitempty"`
-	TagListTemplate string `toml:",omitempty"`
-	Pagination      int    `toml:",omitempty"`
+	Theme            string `toml:",omitempty"`
+	DirTemplate      string `toml:",omitempty"`
+	FileTemplate     string `toml:",omitempty"`
+	TagFilesTemplate string `toml:",omitempty"`
+	Pagination       int    `toml:",omitempty"`
 }
 
 // DirTemplate is template model for rendering a directory.

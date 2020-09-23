@@ -258,7 +258,7 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) ([]string, error) {
 
 	// Render HTML
 	theme := meta.Theme
-	templateName := meta.Template
+	templateName := meta.DirTemplate
 	if templateName == "" {
 		templateName = "directory"
 	}

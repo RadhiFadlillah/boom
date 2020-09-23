@@ -202,8 +202,9 @@ func (wk *Worker) parsePath(path string) (meta model.Metadata, htmlContent templ
 	// In this case, looks for parent's metadata.
 	metaIsReady := func() bool {
 		return meta.Theme != "" &&
-			meta.Template != "" &&
-			meta.TagListTemplate != "" &&
+			meta.DirTemplate != "" &&
+			meta.FileTemplate != "" &&
+			meta.TagFilesTemplate != "" &&
 			meta.Pagination != 0
 	}
 
@@ -230,12 +231,16 @@ func (wk *Worker) parsePath(path string) (meta model.Metadata, htmlContent templ
 			meta.Theme = parentMeta.Theme
 		}
 
-		if meta.Template == "" {
-			meta.Template = parentMeta.ChildTemplate
+		if meta.DirTemplate == "" {
+			meta.DirTemplate = parentMeta.DirTemplate
 		}
 
-		if meta.TagListTemplate == "" {
-			meta.TagListTemplate = parentMeta.TagListTemplate
+		if meta.FileTemplate == "" {
+			meta.FileTemplate = parentMeta.FileTemplate
+		}
+
+		if meta.TagFilesTemplate == "" {
+			meta.TagFilesTemplate = parentMeta.TagFilesTemplate
 		}
 
 		if meta.Pagination == 0 {
