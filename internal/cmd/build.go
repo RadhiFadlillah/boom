@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"bufio"
+	"io/ioutil"
 	"os"
 	fp "path/filepath"
+	"strings"
 
 	"github.com/go-boom/boom/internal/build"
 	"github.com/sirupsen/logrus"
@@ -28,6 +31,9 @@ func buildHandler(cmd *cobra.Command, args []string) {
 		rootDir = args[0]
 	}
 
+	rootDir, err := fp.Abs(rootDir)
+	panicError(err)
+
 	// Parse flags
 	outputDir, _ := cmd.Flags().GetString("output")
 	if outputDir == "" {
@@ -44,7 +50,7 @@ func buildHandler(cmd *cobra.Command, args []string) {
 	if isDir(assetsDir) {
 		logrus.Println("copying assets")
 		dstDir := fp.Join(outputDir, "assets")
-		err := copyDir(assetsDir, dstDir)
+		err := copyDir(assetsDir, dstDir, nil)
 		panicError(err)
 	}
 
@@ -52,9 +58,59 @@ func buildHandler(cmd *cobra.Command, args []string) {
 	themesDir := fp.Join(rootDir, "themes")
 	if isDir(themesDir) {
 		logrus.Println("copying themes")
-		dstDir := fp.Join(outputDir, "themes")
-		err := copyDir(themesDir, dstDir)
+
+		// Create method for parsing .boomignore file
+		parseBoomignore := func(themeDir, boomignorePath string) (map[string]struct{}, error) {
+			boomignore, err := os.Open(boomignorePath)
+			if err != nil {
+				return nil, err
+			}
+			defer boomignore.Close()
+
+			excludedPaths := make(map[string]struct{})
+			scanner := bufio.NewScanner(boomignore)
+			for scanner.Scan() {
+				line := strings.TrimSpace(scanner.Text())
+				if line == "" {
+					continue
+				}
+
+				currentPath := fp.Clean(fp.Join(themeDir, line))
+				excludedPaths[currentPath] = struct{}{}
+			}
+
+			return excludedPaths, nil
+		}
+
+		// Get list of items in themes dir
+		themesDirItems, err := ioutil.ReadDir(themesDir)
 		panicError(err)
+
+		for _, item := range themesDirItems {
+			if !item.IsDir() {
+				continue
+			}
+
+			// Get path to .boomignore
+			itemName := item.Name()
+			themeDir := fp.Join(themesDir, itemName)
+			boomignorePath := fp.Join(themeDir, ".boomignore")
+
+			// Parse .boomignore file if necessary
+			excludedPaths := make(map[string]struct{})
+			if isFile(boomignorePath) {
+				excludedPaths, err = parseBoomignore(themeDir, boomignorePath)
+				panicError(err)
+			}
+
+			// Make sure .git and node_modules excluded
+			excludedPaths[fp.Join(themeDir, ".git")] = struct{}{}
+			excludedPaths[fp.Join(themeDir, "node_modules")] = struct{}{}
+
+			// Copy theme
+			dstDir := fp.Join(outputDir, "themes", itemName)
+			copyDir(themeDir, dstDir, excludedPaths)
+		}
 	}
 
 	// Build site content
