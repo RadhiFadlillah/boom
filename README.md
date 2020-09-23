@@ -40,7 +40,7 @@ Running `boom new .` from the command line will create a directory with the foll
 ├── themes/
 ├── assets/
 └── content/
-    └── _index.toml
+    └── _index.md
 ```
 
 ### "themes" directory
