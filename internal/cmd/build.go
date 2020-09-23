@@ -40,10 +40,24 @@ func buildHandler(cmd *cobra.Command, args []string) {
 		outputDir = fp.Join(rootDir, "public")
 	}
 
-	// Clean output dir
+	// Clean output dir, but keep CNAME file if it exists
 	logrus.Println("cleaning output dir")
-	os.RemoveAll(outputDir)
-	os.MkdirAll(outputDir, os.ModePerm)
+	if !isDir(outputDir) {
+		os.MkdirAll(outputDir, os.ModePerm)
+	} else {
+		items, err := ioutil.ReadDir(outputDir)
+		panicError(err)
+
+		for _, item := range items {
+			itemName := item.Name()
+			if !item.IsDir() && strings.ToLower(itemName) == "cname" {
+				continue
+			}
+
+			itemPath := fp.Join(outputDir, itemName)
+			os.RemoveAll(itemPath)
+		}
+	}
 
 	// Copy assets
 	assetsDir := fp.Join(rootDir, "assets")
