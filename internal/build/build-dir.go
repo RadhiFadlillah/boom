@@ -206,9 +206,7 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) ([]string, error) {
 	}
 
 	sort.Slice(dirTags, func(a, b int) bool {
-		nameA := dirTags[a].Name
-		nameB := dirTags[b].Name
-		return strings.ToLower(nameA) < strings.ToLower(nameB)
+		return dirTags[a].Count > dirTags[b].Count
 	})
 
 	tplData.ChildTags = dirTags
