@@ -14,7 +14,7 @@ import (
 
 func buildCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "build [path]",
+		Use:   "build [root-path]",
 		Short: "Build the static site",
 		Args:  cobra.MaximumNArgs(1),
 		Run:   buildHandler,

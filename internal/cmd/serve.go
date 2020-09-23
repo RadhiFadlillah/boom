@@ -8,7 +8,7 @@ import (
 
 func serveCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "server",
+		Use:     "server [root-path]",
 		Short:   "Run webserver for the site",
 		Aliases: []string{"serve"},
 		Args:    cobra.MaximumNArgs(1),
