@@ -1,9 +1,28 @@
 # Boom
 
-Boom is a simple static site generator for creating a simple site. "Boom" apparently means "tree" in Dutch language, so I thought it's a good name because :
+[![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)][paypal]
+[![Donate](https://img.shields.io/badge/donate-Ko--fi-brightgreen)][kofi]
+
+Boom is a simple static site generator for creating a simple site. I created it for my personal use so as far as I know I'm the only one that use it. You can see [my site][4] as example of generated site and here is its [source code][5].
+
+I named this app "boom" because apparently it means "tree" in Dutch language, so I thought it's a good name because :
 
 - It's easy to say;
 - It's suitable for the app purpose since the content of site will be structured like a tree inside directories.
+
+## Motivations
+
+I've wrote the motivations for building a static site generator in my [blog][6]. In short, several years ago I was creating my own personal site. At first I planned to use [Hugo][7]. Unfortunately, after looking at the documentation I feel a bit intimidated because the documentation was long and confusing for me (do note that this is back in 2018, nowadays their documentation is really nice). Not to mentions there are many features that I believe I won't need. So I decided to create my own static site generator called [`spook`][8].
+
+As times go on, it's evident that Spook is too simple and not suitable for my current case, so I decide to refactor and improve it. That's how `boom` created. Boom is more flexible than Spook while still simple enough to use.
+
+## When to use it
+
+To be honest, if you want to use static site generator Hugo is the way to go. It's fast, actively maintained and has huge community. In other hand I created Boom only for my self. With that said, you might want to use Boom if :
+
+- you are simply curious about it;
+- you want to learn how static site generators work (IMHO my code is quite simple and clean, so it should be easy enough to dissect);
+- you only want to create a simple basic site.
 
 ## Features
 
@@ -64,10 +83,10 @@ This directory is used to store assets that used in the generated site. You can 
 └── assets/
     ├── image-1.jpg					// https://example.com/assets/image-1.jpg
     ├── image-2.png					// https://example.com/assets/image-2.png
-    └── portofolio/
+    └── portfolio/
         └── app-1/
-            ├── screenshot-1.png	// https://example.com/assets/portofolio/app-1/screenshot-1.png
-            └── screenshot-2.png	// https://example.com/assets/portofolio/app-1/screenshot-2.png
+            ├── screenshot-1.png	// https://example.com/assets/portfolio/app-1/screenshot-1.png
+            └── screenshot-2.png	// https://example.com/assets/portfolio/app-1/screenshot-2.png
 ```
 
 ### "content" directory
@@ -89,19 +108,19 @@ In `boom`, a file or directory is considered as a page (and will be rendered) if
 - It's a directory which contains `_index.md` file;
 - It's a markdown file with `.md` extension, the simplest format and might be the one that you will use the most.
 
-As long as you follow rules above, you can customize your content structure to follow your requirements. The structure will later be used for page URL. For example, here is structure for website with several categories :
+As long as you follow rules above, you can customize your content structure to follow your requirements. The structure will later be used for page URL. For example, here is structure for website with several sub directories :
 
 ```
 .
 └── content/
     ├── _index.md         // https://example.com
-    ├── category-1/
-    │   ├── _index.md     // https://example.com/category-1
-    │   ├── post-1.md     // https://example.com/category-1/post-1
-    │   └── post-2.md     // https://example.com/category-1/post-2
-    └── category-2/
-        ├── _index.md     // https://example.com/category-2
-        └── post-3.md     // https://example.com/category-2/post-3
+    ├── directory-1/
+    │   ├── _index.md     // https://example.com/directory-1
+    │   ├── file-1.md     // https://example.com/directory-1/file-1
+    │   └── file-2.md     // https://example.com/directory-1/file-2
+    └── directory-2/
+        ├── _index.md     // https://example.com/directory-2
+        └── file-3.md     // https://example.com/directory-2/file-3
 ```
 
 The only limitations for content structure are :
@@ -268,8 +287,15 @@ type TagPath struct {
 
 ## License
 
-Boom is distributed under Apache-2.0 License. Basically, it means you can do what you like with the software. However, if you modify it, you have to include the license and notices, and state what did you change.
+Boom is distributed under Apache-2.0 License. Basically, it means you can do what you like with the software. However, if you modify it, you have to include the license and notices, and state what did you change. If you like this project, please consider donating to me either via [PayPal][paypal] or [Ko-Fi][kofi].
 
 [1]: https://toml.io/en/v1.0.0-rc.1
 [2]: https://gohugo.io/content-management/front-matter/
 [3]: https://golang.org/pkg/html/template/
+[4]: https://radhifadlillah.com
+[5]: https://github.com/RadhiFadlillah/blog
+[6]: https://radhifadlillah.com/blog/2020-09-26-new-generator-new-design
+[7]: https://gohugo.io/
+[8]: https://github.com/RadhiFadlillah/spook
+[paypal]: https://www.paypal.me/RadhiFadlillah
+[kofi]: https://ko-fi.com/radhifadlillah
