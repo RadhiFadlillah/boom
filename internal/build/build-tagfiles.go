@@ -148,7 +148,13 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) ([]string, error) {
 	sort.Slice(files, func(a, b int) bool {
 		timeA := files[a].UpdateTime
 		timeB := files[b].UpdateTime
-		return timeA.After(timeB)
+		if !timeA.Equal(timeB) {
+			return timeA.After(timeB)
+		}
+
+		titleA := files[a].Title
+		titleB := files[b].Title
+		return strings.ToLower(titleA) < strings.ToLower(titleB)
 	})
 
 	// Calculate pagination stuffs

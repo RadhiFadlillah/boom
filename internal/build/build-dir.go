@@ -163,7 +163,13 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) ([]string, error) {
 	sort.Slice(subFiles, func(a, b int) bool {
 		timeA := subFiles[a].UpdateTime
 		timeB := subFiles[b].UpdateTime
-		return timeA.After(timeB)
+		if !timeA.Equal(timeB) {
+			return timeA.After(timeB)
+		}
+
+		titleA := subFiles[a].Title
+		titleB := subFiles[b].Title
+		return strings.ToLower(titleA) < strings.ToLower(titleB)
 	})
 
 	// Merge sub dirs and sub files
@@ -206,7 +212,15 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) ([]string, error) {
 	}
 
 	sort.Slice(dirTags, func(a, b int) bool {
-		return dirTags[a].Count > dirTags[b].Count
+		countA := dirTags[a].Count
+		countB := dirTags[b].Count
+		if countA != countB {
+			return countA > countB
+		}
+
+		nameA := dirTags[a].Name
+		nameB := dirTags[b].Name
+		return strings.ToLower(nameA) < strings.ToLower(nameB)
 	})
 
 	tplData.ChildTags = dirTags
