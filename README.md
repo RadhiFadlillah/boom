@@ -5,7 +5,7 @@
 
 Boom is a simple static site generator for creating a simple site. I created it for my personal use so as far as I know I'm the only one that use it. You can see [my site][4] as example of generated site and here is its [source code][5].
 
-I named this app "boom" because apparently it means "tree" in Dutch language, so I thought it's a good name because :
+This app is named "boom" which means "tree" in Dutch language. I thought it's a good name because :
 
 - It's easy to say;
 - It's suitable for the app purpose since the content of site will be structured like a tree inside directories.
@@ -18,7 +18,7 @@ As times go on, it's evident that Spook is too simple and not suitable for my cu
 
 ## When to use it
 
-To be honest, if you want to use static site generator Hugo is the way to go. It's fast, actively maintained and has huge community. In other hand I created Boom only for my self. With that said, you might want to use Boom if :
+To be honest, if you want to use static site generator Hugo is the way to go. It's fast, actively maintained and has a huge community. In other hand I created Boom only for my self. With that said, you might want to use Boom if :
 
 - you are simply curious about it;
 - you want to learn how static site generators work (IMHO my code is quite simple and clean, so it should be easy enough to dissect);
