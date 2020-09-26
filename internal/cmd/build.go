@@ -40,7 +40,7 @@ func buildHandler(cmd *cobra.Command, args []string) {
 		outputDir = fp.Join(rootDir, "public")
 	}
 
-	// Clean output dir, but keep CNAME file if it exists
+	// Clean output dir, but keep CNAME file and dot dir
 	logrus.Println("cleaning output dir")
 	if !isDir(outputDir) {
 		os.MkdirAll(outputDir, os.ModePerm)
