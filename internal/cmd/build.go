@@ -50,6 +50,10 @@ func buildHandler(cmd *cobra.Command, args []string) {
 
 		for _, item := range items {
 			itemName := item.Name()
+			if item.IsDir() && strings.HasPrefix(itemName, ".") {
+				continue
+			}
+
 			if !item.IsDir() && strings.ToLower(itemName) == "cname" {
 				continue
 			}
