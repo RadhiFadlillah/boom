@@ -5,6 +5,8 @@ import (
 	"path"
 	fp "path/filepath"
 	"strconv"
+
+	"github.com/RadhiFadlillah/boom/internal/fileutils"
 )
 
 func (wk Worker) funcMap() template.FuncMap {
@@ -27,7 +29,7 @@ func (wk Worker) paginationLink(currentPath string, pageNumber int) string {
 	for {
 		isNum, _ := isNumber(path.Base(currentPath))
 		fPath := fp.Join(wk.ContentDir, currentPath+".md")
-		if !isNum && !isFile(fPath) {
+		if !isNum && !fileutils.IsFile(fPath) {
 			break
 		}
 

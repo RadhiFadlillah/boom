@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RadhiFadlillah/boom/internal/fileutils"
 	"github.com/RadhiFadlillah/boom/internal/model"
 	"github.com/pelletier/go-toml"
 	"github.com/spf13/cobra"
@@ -47,7 +48,10 @@ func newSiteHandler(cmd *cobra.Command, args []string) {
 	os.MkdirAll(rootDir, os.ModePerm)
 
 	// Make sure target dir is empty
-	if !dirEmpty(rootDir) && !isForced {
+	dirEmpty, err := fileutils.DirIsEmpty(rootDir)
+	panicError(err)
+
+	if !dirEmpty && !isForced {
 		cError.Printf("Directory %s already exists and not empty\n", rootDir)
 		return
 	}

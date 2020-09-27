@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/RadhiFadlillah/boom/internal/fileutils"
 	"github.com/RadhiFadlillah/boom/internal/model"
 	"github.com/pelletier/go-toml"
 	"github.com/tdewolff/minify/v2"
@@ -48,14 +49,14 @@ type Config struct {
 // where site lives.
 func NewWorker(rootDir string, cfg Config) (wk Worker, err error) {
 	// Make sure root dir is a valid dir
-	if !isDir(rootDir) {
+	if !fileutils.IsDir(rootDir) {
 		err = errors.New("the specified root dir is not a directory")
 		return
 	}
 
 	// Validate content directory
 	contentDir := fp.Join(rootDir, "content")
-	if !isDir(contentDir) {
+	if !fileutils.IsDir(contentDir) {
 		err = errors.New("content dir doesn't exist")
 		return
 	}
@@ -108,7 +109,7 @@ func (wk *Worker) Build(urlPath string, w io.Writer) ([]string, error) {
 	case rxTagURL.MatchString(urlPath):
 		childURLs, err = wk.buildTagFiles(urlPath, w)
 
-	case isFile(fp.Join(wk.ContentDir, urlPath+".md")):
+	case fileutils.IsFile(fp.Join(wk.ContentDir, urlPath+".md")):
 		err = wk.buildFile(urlPath, w)
 
 	default:
@@ -132,7 +133,7 @@ func (wk *Worker) renderHTML(w io.Writer, data interface{}, themeName string, te
 	themeDir := fp.Join(wk.RootDir, "themes", themeName)
 
 	// If theme name not specified, use the first dir found
-	if themeName == "" && isDir(themeDir) {
+	if themeName == "" && fileutils.IsDir(themeDir) {
 		dirItems, err := ioutil.ReadDir(themeDir)
 		if err != nil {
 			return err
@@ -247,7 +248,7 @@ func (wk *Worker) parsePath(path string) (meta model.Metadata, htmlContent templ
 
 		// Get parent metadata
 		parentIndex := fp.Join(parent, "_index.md")
-		if !isFile(parentIndex) {
+		if !fileutils.IsFile(parentIndex) {
 			continue
 		}
 

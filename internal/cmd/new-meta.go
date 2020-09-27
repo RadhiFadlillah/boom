@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RadhiFadlillah/boom/internal/fileutils"
 	"github.com/RadhiFadlillah/boom/internal/model"
 	"github.com/pelletier/go-toml"
 	"github.com/spf13/cobra"
@@ -30,7 +31,7 @@ func newMetaHandler(cmd *cobra.Command, args []string) {
 	fPath := args[0]
 
 	// Make sure file is markdown
-	if isDir(fPath) {
+	if fileutils.IsDir(fPath) {
 		fPath = fp.Join(fPath, "_index.md")
 	} else {
 		fName := fp.Base(fPath)

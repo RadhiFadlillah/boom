@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/RadhiFadlillah/boom/internal/fileutils"
 	"github.com/RadhiFadlillah/boom/internal/model"
 )
 
@@ -37,7 +38,7 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) ([]string, error) {
 	// we can generate path to _index.md file from it
 	dirPath := fp.Join(wk.ContentDir, cleanURLPath)
 	indexMdPath := fp.Join(wk.ContentDir, cleanURLPath, "_index.md")
-	if !isDir(dirPath) {
+	if !fileutils.IsDir(dirPath) {
 		return nil, fmt.Errorf("%s is not part of site content", urlPath)
 	}
 

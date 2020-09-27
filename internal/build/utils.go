@@ -2,8 +2,6 @@ package build
 
 import (
 	"bytes"
-	"io"
-	"os"
 	"strconv"
 
 	chromahtml "github.com/alecthomas/chroma/formatters/html"
@@ -16,46 +14,12 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 )
 
-func isDir(path string) bool {
-	f, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-
-	return f.IsDir()
-}
-
-func isFile(path string) bool {
-	f, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-
-	return !f.IsDir()
-}
-
 func isNumber(str string) (bool, int) {
 	num, err := strconv.Atoi(str)
 	if err != nil {
 		return false, 0
 	}
 	return true, num
-}
-
-// isEmpty checks if a directory is empty or not.
-func dirIsEmpty(dirPath string) bool {
-	dir, err := os.Open(dirPath)
-	if err != nil {
-		return false
-	}
-	defer dir.Close()
-
-	_, err = dir.Readdirnames(1)
-	if err != io.EOF {
-		return false
-	}
-
-	return true
 }
 
 func convertMarkdownToHTML(bt []byte) ([]byte, error) {

@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/RadhiFadlillah/boom/internal/fileutils"
 	"github.com/RadhiFadlillah/boom/internal/model"
 )
 
@@ -20,7 +21,7 @@ var ErrDraftFile = errors.New("file is draft")
 func (wk *Worker) buildFile(urlPath string, w io.Writer) error {
 	// Create file path from URL
 	filePath := fp.Join(wk.ContentDir, urlPath+".md")
-	if !isFile(filePath) {
+	if !fileutils.IsFile(filePath) {
 		return fmt.Errorf("%s is not part of site content", urlPath)
 	}
 
