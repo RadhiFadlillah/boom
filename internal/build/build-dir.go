@@ -179,6 +179,10 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) ([]string, error) {
 	// Fetch all tags within active directory
 	mapDirTags := make(map[string]int)
 	fnWalk := func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		// We look for markdown file
 		if d.IsDir() || fp.Ext(path) != ".md" || fp.Base(path) == "_index.md" {
 			return nil

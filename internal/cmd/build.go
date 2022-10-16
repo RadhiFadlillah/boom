@@ -127,16 +127,20 @@ func copyAssets(rootDir, outputDir string) error {
 	srcItems := make(map[string]fs.DirEntry)
 	dstItems := make(map[string]fs.DirEntry)
 
-	fp.WalkDir(srcDir, func(path string, d fs.DirEntry, _ error) error {
-		relPath, _ := fp.Rel(srcDir, path)
-		srcItems[relPath] = d
-		return nil
+	fp.WalkDir(srcDir, func(path string, d fs.DirEntry, err error) error {
+		if err == nil {
+			relPath, _ := fp.Rel(srcDir, path)
+			srcItems[relPath] = d
+		}
+		return err
 	})
 
-	fp.WalkDir(dstDir, func(path string, d fs.DirEntry, _ error) error {
-		relPath, _ := fp.Rel(srcDir, path)
-		dstItems[relPath] = d
-		return nil
+	fp.WalkDir(dstDir, func(path string, d fs.DirEntry, err error) error {
+		if err == nil {
+			relPath, _ := fp.Rel(srcDir, path)
+			dstItems[relPath] = d
+		}
+		return err
 	})
 
 	// Remove items in dst that doesn't exist in src
@@ -269,6 +273,10 @@ func copyThemes(rootDir, outputDir string) error {
 	dstItems := make(map[string]fs.DirEntry)
 
 	fp.WalkDir(srcDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		_, excluded := excludedPaths[path]
 		if excluded {
 			if d.IsDir() {
@@ -284,9 +292,11 @@ func copyThemes(rootDir, outputDir string) error {
 	})
 
 	fp.WalkDir(dstDir, func(path string, d fs.DirEntry, err error) error {
-		relPath, _ := fp.Rel(dstDir, path)
-		dstItems[relPath] = d
-		return nil
+		if err == nil {
+			relPath, _ := fp.Rel(dstDir, path)
+			dstItems[relPath] = d
+		}
+		return err
 	})
 
 	// Remove items in dst that doesn't exist in src

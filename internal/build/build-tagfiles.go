@@ -91,6 +91,10 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) ([]string, error) {
 	// Fetch files that uses our active tag
 	files := []model.ContentPath{}
 	fnWalk := func(fPath string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		// We look for markdown file
 		if d.IsDir() || fp.Ext(fPath) != ".md" || fp.Base(fPath) == "_index.md" {
 			return nil
