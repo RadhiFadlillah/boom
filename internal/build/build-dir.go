@@ -3,9 +3,9 @@ package build
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"math"
-	"os"
 	"path"
 	fp "path/filepath"
 	"sort"
@@ -178,9 +178,9 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) ([]string, error) {
 
 	// Fetch all tags within active directory
 	mapDirTags := make(map[string]int)
-	fnWalk := func(path string, info os.FileInfo, err error) error {
+	fnWalk := func(path string, d fs.DirEntry, err error) error {
 		// We look for markdown file
-		if info.IsDir() || fp.Ext(path) != ".md" || fp.Base(path) == "_index.md" {
+		if d.IsDir() || fp.Ext(path) != ".md" || fp.Base(path) == "_index.md" {
 			return nil
 		}
 
@@ -197,7 +197,7 @@ func (wk *Worker) buildDir(urlPath string, w io.Writer) ([]string, error) {
 		return nil
 	}
 
-	err = fp.Walk(dirPath, fnWalk)
+	err = fp.WalkDir(dirPath, fnWalk)
 	if err != nil {
 		return nil, err
 	}

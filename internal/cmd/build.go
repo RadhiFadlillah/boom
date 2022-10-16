@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"bufio"
-	"io/ioutil"
+	"io/fs"
 	"os"
 	fp "path/filepath"
 	"strings"
@@ -66,7 +66,7 @@ func buildHandler(cmd *cobra.Command, args []string) {
 	panicError(err)
 
 	// Report build duration
-	duration := time.Now().Sub(start).Milliseconds()
+	duration := time.Since(start).Milliseconds()
 	logrus.Printf("finished after %d ms\n", duration)
 }
 
@@ -77,7 +77,7 @@ func cleanOutputDir(outputDir string) error {
 	}
 
 	// List all items in output dir
-	items, err := ioutil.ReadDir(outputDir)
+	items, err := os.ReadDir(outputDir)
 	if err != nil {
 		return err
 	}
@@ -124,18 +124,18 @@ func copyAssets(rootDir, outputDir string) error {
 	}
 
 	// List all items in src and dst
-	srcItems := make(map[string]os.FileMode)
-	dstItems := make(map[string]os.FileMode)
+	srcItems := make(map[string]fs.DirEntry)
+	dstItems := make(map[string]fs.DirEntry)
 
-	fp.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
-		path, _ = fp.Rel(srcDir, path)
-		srcItems[path] = info.Mode()
+	fp.WalkDir(srcDir, func(path string, d fs.DirEntry, _ error) error {
+		relPath, _ := fp.Rel(srcDir, path)
+		srcItems[relPath] = d
 		return nil
 	})
 
-	fp.Walk(dstDir, func(path string, info os.FileInfo, err error) error {
-		path, _ = fp.Rel(dstDir, path)
-		dstItems[path] = info.Mode()
+	fp.WalkDir(dstDir, func(path string, d fs.DirEntry, _ error) error {
+		relPath, _ := fp.Rel(srcDir, path)
+		dstItems[relPath] = d
 		return nil
 	})
 
@@ -194,7 +194,7 @@ func copyThemes(rootDir, outputDir string) error {
 
 	// Get list of excluded paths from each theme
 	excludedPaths := make(map[string]struct{})
-	themeList, err := ioutil.ReadDir(srcDir)
+	themeList, err := os.ReadDir(srcDir)
 	if err != nil {
 		return err
 	}
@@ -242,7 +242,7 @@ func copyThemes(rootDir, outputDir string) error {
 		}
 
 		// Read items in theme's root dir
-		themeItems, err := ioutil.ReadDir(themeDir)
+		themeItems, err := os.ReadDir(themeDir)
 		if err != nil {
 			return err
 		}
@@ -265,27 +265,27 @@ func copyThemes(rootDir, outputDir string) error {
 	}
 
 	// List all items in src and dst
-	srcItems := make(map[string]os.FileMode)
-	dstItems := make(map[string]os.FileMode)
+	srcItems := make(map[string]fs.DirEntry)
+	dstItems := make(map[string]fs.DirEntry)
 
-	fp.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
+	fp.WalkDir(srcDir, func(path string, d fs.DirEntry, err error) error {
 		_, excluded := excludedPaths[path]
 		if excluded {
-			if info.IsDir() {
+			if d.IsDir() {
 				return fp.SkipDir
 			} else {
 				return nil
 			}
 		}
 
-		path, _ = fp.Rel(srcDir, path)
-		srcItems[path] = info.Mode()
+		relPath, _ := fp.Rel(srcDir, path)
+		srcItems[relPath] = d
 		return nil
 	})
 
-	fp.Walk(dstDir, func(path string, info os.FileInfo, err error) error {
-		path, _ = fp.Rel(dstDir, path)
-		dstItems[path] = info.Mode()
+	fp.WalkDir(dstDir, func(path string, d fs.DirEntry, err error) error {
+		relPath, _ := fp.Rel(dstDir, path)
+		dstItems[relPath] = d
 		return nil
 	})
 

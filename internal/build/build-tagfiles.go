@@ -3,8 +3,8 @@ package build
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"math"
-	"os"
 	"path"
 	fp "path/filepath"
 	"sort"
@@ -90,9 +90,9 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) ([]string, error) {
 
 	// Fetch files that uses our active tag
 	files := []model.ContentPath{}
-	fnWalk := func(fPath string, info os.FileInfo, err error) error {
+	fnWalk := func(fPath string, d fs.DirEntry, err error) error {
 		// We look for markdown file
-		if info.IsDir() || fp.Ext(fPath) != ".md" || fp.Base(fPath) == "_index.md" {
+		if d.IsDir() || fp.Ext(fPath) != ".md" || fp.Base(fPath) == "_index.md" {
 			return nil
 		}
 
@@ -140,7 +140,7 @@ func (wk *Worker) buildTagFiles(urlPath string, w io.Writer) ([]string, error) {
 		return nil
 	}
 
-	err = fp.Walk(dirPath, fnWalk)
+	err = fp.WalkDir(dirPath, fnWalk)
 	if err != nil {
 		return nil, err
 	}
